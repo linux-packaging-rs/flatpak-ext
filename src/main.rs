@@ -4,6 +4,7 @@ mod run;
 use std::{
     env, fs,
     path::{Path, PathBuf},
+    string::FromUtf8Error,
 };
 
 use clap::Parser;
@@ -14,7 +15,7 @@ use crate::{config::UserConfig, run::Flatpak};
 #[derive(Debug)]
 pub enum PortapakError {
     IO(std::io::Error),
-    CommandUnsuccessful,
+    CommandUnsuccessful(String),
     FileNotFound(PathBuf),
     ConfigRead(SpannedError),
     ConfigWrite(ron::Error),
@@ -35,6 +36,12 @@ impl From<SpannedError> for PortapakError {
 impl From<ron::Error> for PortapakError {
     fn from(value: ron::Error) -> Self {
         Self::ConfigWrite(value)
+    }
+}
+
+impl From<FromUtf8Error> for PortapakError {
+    fn from(e: FromUtf8Error) -> Self {
+        Self::CommandUnsuccessful(e.to_string())
     }
 }
 
