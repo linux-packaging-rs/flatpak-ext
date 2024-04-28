@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Portapak
+Name[x-test]=xxPortapakxx
+Exec=portapak %U
+Type=Application
+Categories=Flatpak
+NoDisplay=true
+
+MimeType=application/vnd.flatpak
