@@ -30,17 +30,9 @@ impl Flatpak {
         })
     }
 
-    pub fn extract_repo(
-        &self,
-        tmp_dir: PathBuf,
-        out_dir: PathBuf,
-    ) -> Result<PathBuf, PortapakError> {
-        let temporary_repo = tmp_dir.join(&self.appid);
-        let out_repo = out_dir.join(&self.appid);
-        fs::create_dir_all(&temporary_repo)?;
-        fs::create_dir_all(&out_dir.parent().unwrap())?;
-        let repo_string = temporary_repo.as_os_str().to_string_lossy();
-        let outdir_string = out_repo.as_os_str().to_string_lossy();
+    pub fn extract_repo(&self, tmp_dir: PathBuf, out_dir: PathBuf) -> Result<(), PortapakError> {
+        let repo_string = tmp_dir.as_os_str().to_string_lossy();
+        let outdir_string = out_dir.as_os_str().to_string_lossy();
         log::debug!("{} :: {}", repo_string, outdir_string);
 
         let command_1 = format!("ostree init --repo={} --mode=bare-user", repo_string);
@@ -51,8 +43,6 @@ impl Flatpak {
             .status()?
             .success()
         {
-            fs::remove_dir_all(&temporary_repo)?;
-            fs::remove_dir_all(&out_repo)?;
             return Err(PortapakError::CommandUnsuccessful(command_1));
         }
 
@@ -68,8 +58,6 @@ impl Flatpak {
             .status()?
             .success()
         {
-            fs::remove_dir_all(&temporary_repo)?;
-            fs::remove_dir_all(&out_repo)?;
             return Err(PortapakError::CommandUnsuccessful(command_2));
         }
         let command_2b = format!("ls {}/objects/*/*.commit", repo_string);
@@ -113,13 +101,9 @@ impl Flatpak {
             .status()?
             .success()
         {
-            fs::remove_dir_all(&temporary_repo)?;
-            fs::remove_dir_all(&out_repo)?;
             return Err(PortapakError::CommandUnsuccessful(command_3));
         }
-        fs::remove_dir_all(&temporary_repo)?;
-
-        Ok(out_repo)
+        Ok(())
     }
 
     pub fn set_appid(&mut self, metadata: String) -> Result<(), PortapakError> {
@@ -174,10 +158,17 @@ impl Flatpak {
 
 pub fn run_flatpak(mut flatpak: Flatpak, config: UserConfig) -> Result<(), PortapakError> {
     let tmp = config.get_temporary_dir();
-    let (tmp_dir, out_dir) = (tmp.join("tmp"), tmp.join("out"));
-    let repo = flatpak.extract_repo(tmp_dir, out_dir)?;
-    flatpak.set_appid(fs::read_to_string(repo.join("metadata"))?)?;
-    let res = flatpak.run_self(Some(repo.join("files")));
-    fs::remove_dir_all(repo)?;
+    let (tmp_dir, out_dir) = (
+        tmp.join(format!("tmp/{}", flatpak.appid)),
+        tmp.join(format!("out/{}", flatpak.appid)),
+    );
+    fs::create_dir_all(&tmp_dir)?;
+    fs::create_dir_all(&out_dir)?;
+    fs::remove_dir(&out_dir)?;
+    flatpak.extract_repo(tmp_dir.clone(), out_dir.clone())?;
+    fs::remove_dir_all(&tmp_dir)?;
+    flatpak.set_appid(fs::read_to_string(out_dir.join("metadata"))?)?;
+    let res = flatpak.run_self(Some(out_dir.join("files")));
+    fs::remove_dir_all(&out_dir)?;
     res
 }
