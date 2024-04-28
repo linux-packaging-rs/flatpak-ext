@@ -23,7 +23,7 @@ URL:            https://github.com/ryanabx/portapak
 # To create this source:
 # * git clone the repository
 # * tar -pcJf $name-$commit.tar.xz
-Source:         %{name}-%{ver}.tar.xz
+Source:         %{name}-%{commit}.tar.xz
 
 BuildRequires:  cargo-rpm-macros >= 26
 BuildRequires:  rustc
@@ -37,7 +37,7 @@ Requires:       flatpak
 %description %{_description}
 
 %prep
-%autosetup -n %{crate}-%{version} -p1
+%autosetup -n %{name}-%{commit} -p1
 %cargo_prep
 
 %generate_buildrequires
