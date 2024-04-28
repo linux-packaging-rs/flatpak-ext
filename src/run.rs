@@ -38,6 +38,7 @@ impl Flatpak {
         let temporary_repo = tmp_dir.join(&self.appid);
         let out_repo = out_dir.join(&self.appid);
         fs::create_dir_all(&temporary_repo)?;
+        fs::create_dir_all(&out_dir.parent().unwrap())?;
         let repo_string = temporary_repo.as_os_str().to_string_lossy();
         let outdir_string = out_repo.as_os_str().to_string_lossy();
         log::debug!("{} :: {}", repo_string, outdir_string);
