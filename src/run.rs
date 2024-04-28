@@ -1,4 +1,4 @@
-use std::{env, path::PathBuf, process::Command};
+use std::{env, fs, path::PathBuf, process::Command};
 
 use crate::{
     config::{FlatpakHandle, RunConfig, UserConfig},
@@ -33,6 +33,8 @@ impl Flatpak {
     ) -> Result<PathBuf, PortapakError> {
         let temporary_repo = tmp_dir.join(&format!("portapak/repo/{}", self.appid));
         let out_repo = out_dir.join(&format!("portapak/repo/{}", self.appid));
+        fs::create_dir_all(&temporary_repo)?;
+        fs::create_dir_all(&out_repo)?;
         let repo_string = temporary_repo.as_os_str().to_string_lossy();
         let outdir_string = out_repo.as_os_str().to_string_lossy();
         if Command::new("ostree")
@@ -48,9 +50,13 @@ impl Flatpak {
             .arg("-c")
             .arg(&format!("ostree checkout --repo={} -U $(basename $(echo repo/objects/*/*.commit | cut -d/ -f3- --output-delimiter= ) .commit) {}", repo_string, outdir_string))
             .status()?.success() {
-        Ok(out_repo)
+                fs::remove_dir_all(&temporary_repo)?;
+                fs::remove_dir_all(&out_repo)?;
+                Ok(out_repo)
         }
         else {
+            fs::remove_dir_all(&temporary_repo)?;
+            fs::remove_dir_all(&out_repo)?;
             Err(PortapakError::CommandUnsuccessful)
         }
     }
