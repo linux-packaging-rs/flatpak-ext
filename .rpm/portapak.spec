@@ -50,7 +50,7 @@ Requires:       flatpak
 
 %install
 %cargo_install
-install -Dm0644 data/net.ryanabx.Portapak.desktop %{_buildroot}/%{_datadir}/applications/net.ryanabx.Portapak.desktop
+install -Dm0644 data/net.ryanabx.Portapak.desktop %{buildroot}/%{_datadir}/applications/net.ryanabx.Portapak.desktop
 
 %if %{with check}
 %check
