@@ -9,7 +9,7 @@ bin-src := 'target' / 'release' / name
 bin-dst := base-dir / 'bin' / name
 
 desktop-src := 'data' / 'net.ryanabx.Portapak.desktop'
-desktop-src := base-dir / 'share' / 'applications' / 'net.ryanabx.Portapak.desktop'
+desktop-dst := base-dir / 'share' / 'applications' / 'net.ryanabx.Portapak.desktop'
 
 build *args:
     cargo build --release {{args}}
