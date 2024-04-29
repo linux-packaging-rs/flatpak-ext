@@ -1,4 +1,6 @@
 mod config;
+mod flatpak;
+mod flatpak_repo;
 mod run;
 
 use std::{
@@ -10,7 +12,7 @@ use std::{
 use clap::Parser;
 use ron::de::SpannedError;
 
-use crate::{config::UserConfig, run::Flatpak};
+use crate::{config::UserConfig, flatpak::Flatpak};
 
 #[derive(Debug)]
 pub enum PortapakError {
