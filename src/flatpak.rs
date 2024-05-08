@@ -1,157 +1,85 @@
 use std::{
     env,
+    fs::{read_dir, remove_dir_all},
     path::{Path, PathBuf},
     process::Command,
 };
 
-use crate::{
-    config::{FlatpakHandle, RunConfig, UserConfig},
-    PortapakError,
-};
+use rand::{distributions::Alphanumeric, thread_rng, Rng};
+
+use crate::PortapakError;
 
 #[derive(Debug, Clone)]
 pub struct Flatpak {
     pub path: PathBuf,
     pub appid: String,
-    pub config: RunConfig,
+    pub repo: PathBuf,
 }
 
 impl Flatpak {
-    pub fn new(app_path: PathBuf, config: UserConfig) -> Result<Self, PortapakError> {
+    pub fn new(app_path: PathBuf) -> Result<Self, PortapakError> {
         if !app_path.exists() {
             return Err(PortapakError::FileNotFound(app_path));
         }
-
-        let appid = app_path.file_stem().unwrap().to_string_lossy().to_string();
+        log::debug!("app path {:?} exists!", app_path);
+        let random_repo: String = thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(20)
+            .map(char::from)
+            .collect();
+        let repo = Path::new(&format!(
+            "{}/portapak/{}",
+            env::var("RUNTIME_DIR").unwrap_or(format!(
+                "/run/user/{}",
+                env::var("UID").unwrap_or("1000".to_string())
+            )),
+            random_repo,
+        ))
+        .to_path_buf();
+        log::debug!("random repo: {:?}", repo);
+        let status = Command::new("flatpak")
+            .arg("install")
+            .arg("--user")
+            .arg(&app_path)
+            .arg("-y")
+            .env("FLATPAK_USER_DIR", &repo)
+            .output()?;
+        log::debug!(
+            "command flatpak install {:?} -y ended with code {:?}",
+            &app_path,
+            status
+        );
+        if !repo.exists() {
+            return Err(PortapakError::FileNotFound(repo));
+        }
+        let appid = read_dir(repo.join("app"))?
+            .next()
+            .unwrap()?
+            .file_name()
+            .to_string_lossy()
+            .to_string();
+        log::debug!("appid found: {}", appid);
         Ok(Self {
             path: app_path.clone(),
             appid,
-            config: config.get_config(FlatpakHandle::Path(app_path.clone())),
+            repo,
         })
     }
 
-    pub fn extract_repo(&self, tmp_dir: PathBuf, out_dir: PathBuf) -> Result<(), PortapakError> {
-        let repo_string = tmp_dir.as_os_str().to_string_lossy();
-        let outdir_string = out_dir.as_os_str().to_string_lossy();
-        log::debug!("{} :: {}", repo_string, outdir_string);
-
-        let command_1 = format!("ostree init --repo={} --mode=bare-user", repo_string);
-        log::debug!("{}", command_1);
-        if !Command::new("sh")
-            .arg("-c")
-            .arg(&command_1)
-            .status()?
-            .success()
-        {
-            return Err(PortapakError::CommandUnsuccessful(command_1));
-        }
-
-        let command_2 = format!(
-            "ostree static-delta apply-offline --repo={} {}",
-            repo_string,
-            self.path.as_os_str().to_string_lossy()
-        );
-        log::debug!("{}", command_2);
-        if !Command::new("sh")
-            .arg("-c")
-            .arg(&command_2)
-            .status()?
-            .success()
-        {
-            return Err(PortapakError::CommandUnsuccessful(command_2));
-        }
-        let command_2b = format!("ls {}/objects/*/*.commit", repo_string);
-        log::debug!("{}", command_2b);
-        let commit_path = Path::new(&String::from_utf8(
-            Command::new("sh")
-                .arg("-c")
-                .arg(&command_2b)
-                .output()?
-                .stdout,
-        )?)
-        .to_path_buf();
-        let commit = format!(
-            "{}{}",
-            commit_path
-                .parent()
-                .unwrap()
-                .file_name()
-                .unwrap()
-                .to_string_lossy()
-                .trim()
-                .to_string(),
-            commit_path
-                .file_stem()
-                .unwrap()
-                .to_string_lossy()
-                .trim()
-                .to_string()
-        );
-        log::debug!("'{}'", commit);
-        // FIXME: Hacky workaround, ostree should have a better way to check out branches when applying offline (https://github.com/flatpak/flatpak/issues/126#issuecomment-227068860)
-        let command_3 = format!(
-            "ostree checkout --repo={} -U {} {}",
-            repo_string, commit, outdir_string
-        );
-        log::debug!("{}", command_3);
-
-        if !Command::new("sh")
-            .arg("-c")
-            .arg(&command_3)
-            .status()?
-            .success()
-        {
-            return Err(PortapakError::CommandUnsuccessful(command_3));
-        }
-        Ok(())
-    }
-
-    pub fn set_appid(&mut self, metadata: String) -> Result<(), PortapakError> {
-        for line in metadata.lines() {
-            if line.starts_with("name=") || line.starts_with("Name=") {
-                self.appid = line.split_once("=").unwrap().1.to_string();
-                return Ok(());
-            }
-        }
-        Err(PortapakError::CommandUnsuccessful(
-            "Could not find app name= in metadata".to_string(),
-        ))
-    }
-
-    pub fn run_self(&self, from_repo: Option<PathBuf>) -> Result<(), PortapakError> {
-        if let Some(repo) = from_repo {
-            let command = format!(
-                "flatpak --env=HOME={} --app-path={} run {}",
-                env::var("HOME").unwrap(),
-                repo.as_os_str().to_string_lossy(),
-                &self.appid
-            );
-            log::debug!("{}", command);
-            if Command::new("sh")
-                .arg("-c")
-                .arg(&command)
-                .env("HOME", self.config.get_home_directory())
-                .status()?
-                .success()
-            {
+    pub fn run(&self) -> Result<(), PortapakError> {
+        let status = Command::new("flatpak")
+            .arg("run")
+            .arg("--user")
+            .arg(&self.appid)
+            .env("FLATPAK_USER_DIR", &self.repo)
+            .status();
+        let _ = remove_dir_all(&self.repo);
+        match status {
+            Ok(s) => {
+                log::debug!("Flatpak exited with status {:?}", s);
                 Ok(())
-            } else {
-                Err(PortapakError::CommandUnsuccessful(command))
             }
-        } else {
-            if Command::new("flatpak")
-                .arg("run")
-                .arg(&self.appid)
-                .status()?
-                .success()
-            {
-                Ok(())
-            } else {
-                Err(PortapakError::CommandUnsuccessful(format!(
-                    "flatpak run {}",
-                    self.appid
-                )))
-            }
+            Err(e) => Err(PortapakError::from(e)),
         }
     }
 }
