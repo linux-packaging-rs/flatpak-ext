@@ -18,7 +18,7 @@ impl Flatpak {
         }
         log::debug!("app path {:?} exists!", app_path);
         let repo = tempdir()?;
-        log::debug!("random repo: {:?}", repo);
+        log::debug!("random repo: {:?}", repo.path());
         let status = Command::new("flatpak")
             .arg("install")
             .arg("--user")
