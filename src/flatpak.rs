@@ -28,10 +28,9 @@ impl Flatpak {
             .map(char::from)
             .collect();
         let repo = Path::new(&format!(
-            "{}/portapak/{}",
-            env::var("RUNTIME_DIR").unwrap_or(format!(
-                "/run/user/{}",
-                env::var("UID").unwrap_or("1000".to_string())
+            "{}/portapak_{}",
+            env::var("TMPDIR").unwrap_or(env::var("TEMPDIR").unwrap_or(
+                env::var("TMP").unwrap_or(env::var("TEMP").unwrap_or("/tmp/".to_string()))
             )),
             random_repo,
         ))
