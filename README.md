@@ -1,8 +1,8 @@
-# Portapak - Run Flatpaks in a portable manner!
+![Portapak](res/social_preview.png)
 
 It's as simple as running `portapak <path_to_flatpak>`!
 
-Currently, this is largely untested and WIP. Please help test it and [Submit ISSUES](https://github.com/ryanabx/portapak/issues/new) when you come across them!
+> **NOTE:** Please help test it and [Submit ISSUES](https://github.com/ryanabx/portapak/issues/new) when you come across them!
 
 ## Install/Uninstall
 
