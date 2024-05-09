@@ -55,7 +55,8 @@ Requires:       flatpak
 
 %install
 %cargo_install
-install -Dm0644 data/net.ryanabx.Portapak.desktop %{buildroot}/%{_datadir}/applications/net.ryanabx.Portapak.desktop
+install -Dm0644 data/io.ryanabx.Portapak.desktop %{buildroot}/%{_datadir}/applications/io.ryanabx.Portapak.desktop
+install -Dm0644 data/io.ryanabx.Portapak.svg %{buildroot}/%{_datadir}/icons/hicolor/scalable/apps/io.ryanabx.Portapak.svg
 
 %if %{with check}
 %check
@@ -67,7 +68,8 @@ install -Dm0644 data/net.ryanabx.Portapak.desktop %{buildroot}/%{_datadir}/appli
 %license LICENSE.dependencies
 %doc README.md
 %{_bindir}/portapak
-%{_datadir}/applications/net.ryanabx.Portapak.desktop
+%{_datadir}/applications/io.ryanabx.Portapak.desktop
+%{_datadir}/icons/hicolor/scalable/apps/io.ryanabx.Portapak.svg
 
 %changelog
 %autochangelog
