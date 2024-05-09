@@ -2,7 +2,8 @@
 Name=Portapak
 Exec=portapak %U
 Type=Application
+Icon=io.ryanabx.Portapak
 Categories=Flatpak
 NoDisplay=true
 
-MimeType=application/vnd.flatpak
+MimeType=application/vnd.flatpak;
