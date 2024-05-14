@@ -14,4 +14,5 @@ license = "Apache-2.0"
 clap = { version = "4.5.4", features = ["derive"] }
 env_logger = "0.11.3"
 log = "0.4.21"
+rustix = { version = "0.38.34", features = ["process"] }
 tempfile = "3.10.1"

@@ -2,7 +2,7 @@
 Name=Portapak
 Exec=portapak %U
 Type=Application
-Icon=io.ryanabx.Portapak
+Icon=io.github.ryanabx.Portapak
 Categories=Flatpak
 NoDisplay=true
 

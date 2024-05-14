@@ -199,6 +199,7 @@ dependencies = [
  "clap",
  "env_logger",
  "log",
+ "rustix",
  "tempfile",
 ]
 

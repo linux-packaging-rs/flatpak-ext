@@ -8,11 +8,11 @@ base-dir := absolute_path(clean(rootdir / prefix))
 bin-src := 'target' / 'release' / name
 bin-dst := base-dir / 'bin' / name
 
-desktop-src := 'data' / 'io.ryanabx.Portapak.desktop'
-desktop-dst := base-dir / 'share' / 'applications' / 'io.ryanabx.Portapak.desktop'
+desktop-src := 'data' / 'io.github.ryanabx.Portapak.desktop'
+desktop-dst := base-dir / 'share' / 'applications' / 'io.github.ryanabx.Portapak.desktop'
 
-icon-src := 'data' / 'io.ryanabx.Portapak.svg'
-icon-dst := base-dir / 'share' / 'icons' / 'hicolor' / 'scalable' / 'apps' / 'io.ryanabx.Portapak.svg'
+icon-src := 'data' / 'io.github.ryanabx.Portapak.svg'
+icon-dst := base-dir / 'share' / 'icons' / 'hicolor' / 'scalable' / 'apps' / 'io.github.ryanabx.Portapak.svg'
 
 build *args:
     cargo build --release {{args}}
