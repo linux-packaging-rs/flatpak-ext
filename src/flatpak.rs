@@ -71,17 +71,6 @@ impl Flatpak {
         transaction.add_default_dependency_sources();
         transaction.add_install_bundle(&app_path_file, None)?;
         // Set up connections to signals
-        transaction.connect_add_new_remote(|a, b, c, d, e| {
-            log::debug!(
-                "Add new remote: {:?} {:?} {:?} {:?} {:?}. Returning 'TRUE' to add the remote.",
-                a,
-                b,
-                c,
-                d,
-                e
-            );
-            true
-        });
         transaction.connect_operation_error(|a, b, c, d| {
             log::debug!(
                 "Operation error: {:?} {:?} {:?} {:?}. Stopping transation...",
