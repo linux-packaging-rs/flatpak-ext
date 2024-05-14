@@ -1,84 +1,117 @@
 use std::{
     env,
-    fs::read_dir,
     path::{Path, PathBuf},
-    process::Command,
 };
 
-use rustix::process;
+use libflatpak::{
+    prelude::InstanceExt,
+    prelude::{InstallationExtManual, TransactionExt},
+    LaunchFlags,
+};
+use rustix::process::{waitpid, Pid, WaitOptions};
 
 use tempfile::{tempdir_in, TempDir};
 
 use crate::PortapakError;
 
 #[derive(Debug)]
-pub struct Flatpak {
-    pub path: PathBuf,
-    pub appid: String,
+pub struct FlatpakRepo {
     pub repo: TempDir,
+    pub installation: libflatpak::Installation,
 }
 
-impl Flatpak {
-    pub fn new(app_path: PathBuf) -> Result<Self, PortapakError> {
-        if !app_path.exists() {
-            return Err(PortapakError::FileNotFound(app_path));
-        }
-        log::debug!("app path {:?} exists!", app_path);
+#[derive(Debug)]
+pub struct Flatpak {
+    app_ref: String,
+    app_id: String,
+    app_commit: String,
+}
+
+impl FlatpakRepo {
+    pub fn new() -> Result<Self, PortapakError> {
         let base_path = env::var("XDG_CACHE_HOME")
             .map_or(Path::new(&env::var("HOME").unwrap()).join(".cache"), |x| {
                 Path::new(&x).to_path_buf()
             });
         let repo = tempdir_in(base_path)?;
         log::debug!("random repo: {:?}", repo.path());
-        log::info!(
-            "FLATPAK_USER_DIR={:?} flatpak install --user {:?} -y",
-            repo.path(),
-            &app_path
-        );
-        let status = Command::new("flatpak")
-            .arg("install")
-            .arg("--user")
-            .arg(&app_path)
-            .arg("-y")
-            .env("FLATPAK_USER_DIR", repo.path())
-            .status()?;
-        log::debug!(
-            "command flatpak install {:?} -y ended with code {:?}",
-            &app_path,
-            status
-        );
-        let appid = read_dir(repo.path().join("app"))?
-            .next()
-            .unwrap()?
-            .file_name()
-            .to_string_lossy()
-            .to_string();
-        log::debug!("appid found: {}", appid);
+        let repo_file = libflatpak::gio::File::for_path(repo.path());
+        let installation = libflatpak::Installation::for_path(
+            &repo_file,
+            true,
+            libflatpak::gio::Cancellable::current().as_ref(),
+        )?;
+        log::debug!("got flatpak installation! {:?}", installation);
+        Ok(Self { repo, installation })
+    }
+}
+
+impl Flatpak {
+    pub fn new(app_path: PathBuf, repo: &FlatpakRepo) -> Result<Self, PortapakError> {
+        if !app_path.exists() {
+            return Err(PortapakError::FileNotFound(app_path));
+        }
+        log::debug!("app path {:?} exists!", app_path);
+        let app_path_file = libflatpak::gio::File::for_path(app_path);
+        let transaction = libflatpak::Transaction::for_installation(
+            &repo.installation,
+            libflatpak::gio::Cancellable::current().as_ref(),
+        )?;
+        let _ = transaction.add_install_bundle(&app_path_file, None)?;
+        let _ = transaction.add_default_dependency_sources();
+        let _ = transaction.run(libflatpak::gio::Cancellable::current().as_ref())?;
+        let op = transaction.operations().get(0).unwrap().clone();
+        let app_ref = op.get_ref().unwrap();
+        let app_commit = op.commit().unwrap();
+        let app_id = op.metadata().unwrap().string("Application", "name")?;
+        log::debug!("Installed bundle!");
         Ok(Self {
-            path: app_path.clone(),
-            appid,
-            repo,
+            app_ref: app_ref.into(),
+            app_id: app_id.into(),
+            app_commit: app_commit.into(),
         })
     }
 
-    pub fn run(&self) -> Result<(), PortapakError> {
-        log::info!(
-            "FLATPAK_USER_DIR={:?} flatpak run --user {:?}",
-            &self.repo.path(),
-            &self.appid
-        );
-        let status = Command::new("flatpak")
-            .arg("run")
-            .arg("--user")
-            .arg(&self.appid)
-            .env("FLATPAK_USER_DIR", &self.repo.path())
-            .status();
-        match status {
-            Ok(s) => {
-                log::debug!("Flatpak exited with status {:?}", s);
-                Ok(())
+    pub fn run(&self, repo: &FlatpakRepo) -> Result<(), PortapakError> {
+        log::debug!("{:?}", self);
+        let inst = repo.installation.launch_full(
+            LaunchFlags::DO_NOT_REAP,
+            &self.app_id,
+            None,
+            Some(&self.branch()),
+            Some(&self.app_commit),
+            libflatpak::gio::Cancellable::current().as_ref(),
+        )?;
+        // unsafe {
+        //     g_child_watch_add_full(priority, pid, function, data, notify);
+        // }
+        loop {
+            let res = waitpid(
+                Some(unsafe { Pid::from_raw_unchecked(inst.child_pid()) }),
+                WaitOptions::empty(),
+            );
+            match res {
+                Err(e) => {
+                    log::error!("{}", e);
+                    break;
+                }
+                Ok(status) => {
+                    if status.is_some_and(|s| s.exited()) {
+                        log::info!(
+                            "Process {} exited {:?}. is_running: {}",
+                            inst.child_pid(),
+                            status,
+                            inst.is_running()
+                        );
+                        break;
+                    }
+                }
             }
-            Err(e) => Err(PortapakError::from(e)),
         }
+        Ok(())
+    }
+
+    fn branch(&self) -> String {
+        self.app_ref.rsplit_once("/").unwrap().1.to_string()
     }
 }
