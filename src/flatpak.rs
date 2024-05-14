@@ -85,7 +85,7 @@ impl Flatpak {
             libflatpak::gio::Cancellable::current().as_ref(),
         )?;
         while inst.is_running() {
-            sleep(Duration::from_millis(100));
+            sleep(Duration::from_millis(1000));
         }
         log::info!("Instance is no longer running! Removing repo...");
         Ok(())
