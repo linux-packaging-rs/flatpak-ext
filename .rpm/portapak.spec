@@ -33,6 +33,7 @@ Source:         %{name}-%{commit}.tar.xz
 BuildRequires:  cargo-rpm-macros >= 26
 BuildRequires:  rustc
 BuildRequires:  cargo
+BuildRequires:  flatpak-devel
 
 Requires:       flatpak
 
