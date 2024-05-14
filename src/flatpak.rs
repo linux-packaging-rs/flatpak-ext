@@ -1,6 +1,8 @@
 use std::{
     env,
     path::{Path, PathBuf},
+    thread::sleep,
+    time::Duration,
 };
 
 use libflatpak::{
@@ -75,39 +77,17 @@ impl Flatpak {
     pub fn run(&self, repo: &FlatpakRepo) -> Result<(), PortapakError> {
         log::debug!("{:?}", self);
         let inst = repo.installation.launch_full(
-            LaunchFlags::DO_NOT_REAP,
+            LaunchFlags::NONE,
             &self.app_id,
             None,
             Some(&self.branch()),
             Some(&self.app_commit),
             libflatpak::gio::Cancellable::current().as_ref(),
         )?;
-        // unsafe {
-        //     g_child_watch_add_full(priority, pid, function, data, notify);
-        // }
-        loop {
-            let res = waitpid(
-                Some(unsafe { Pid::from_raw_unchecked(inst.child_pid()) }),
-                WaitOptions::empty(),
-            );
-            match res {
-                Err(e) => {
-                    log::error!("{}", e);
-                    break;
-                }
-                Ok(status) => {
-                    if status.is_some_and(|s| s.exited()) {
-                        log::info!(
-                            "Process {} exited {:?}. is_running: {}",
-                            inst.child_pid(),
-                            status,
-                            inst.is_running()
-                        );
-                        break;
-                    }
-                }
-            }
+        while inst.is_running() {
+            sleep(Duration::from_millis(100));
         }
+        log::info!("Instance is no longer running! Removing repo...");
         Ok(())
     }
 
