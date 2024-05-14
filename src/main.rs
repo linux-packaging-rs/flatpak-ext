@@ -1,3 +1,4 @@
+mod flathub;
 mod flatpak;
 
 use std::{path::PathBuf, string::FromUtf8Error};
@@ -56,7 +57,17 @@ fn main() -> Result<(), PortapakError> {
         cli.app.as_os_str().to_string_lossy()
     );
     let repo = FlatpakRepo::new()?;
-    let flatpak = Flatpak::new(cli.app, &repo)?;
-    flatpak.run(&repo)?;
-    Ok(())
+    match Flatpak::new(cli.app, &repo) {
+        Ok(flatpak) => match flatpak.run(&repo) {
+            Ok(()) => Ok(()),
+            Err(e) => {
+                log::error!("{:?}", e);
+                Ok(())
+            }
+        },
+        Err(e) => {
+            log::error!("{:?}", e);
+            Ok(())
+        }
+    }
 }
