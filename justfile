@@ -17,6 +17,7 @@ flatpak-bin-dst := flatpak-base-dir / 'bin' / name
 desktop := APPID + '.desktop'
 desktop-src := 'data' / desktop
 desktop-dst := clean(rootdir / prefix) / 'share' / 'applications' / desktop
+flatpak-desktop-dst := flatpak-base-dir / 'share' / 'applications' / desktop
 
 metainfo := APPID + '.metainfo.xml'
 metainfo-src := 'data' / metainfo
