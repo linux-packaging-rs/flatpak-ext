@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Portapak
-Exec=portapak %U
+Exec=portapak run path %U
 Type=Application
 Icon=io.github.ryanabx.Portapak
 Categories=Flatpak
