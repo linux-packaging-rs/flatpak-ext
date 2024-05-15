@@ -13,7 +13,7 @@ Version:        %{ver}~git%{date}.%{sub %{commit} 1 7}
 Release:        %autorelease
 Summary:        Run flatpak applications without installation
 
-SourceLicense:  Apache-2.0
+SourceLicense:  MIT
 # (MIT OR Apache-2.0) AND Unicode-DFS-2016
 # Apache-2.0
 # Apache-2.0 OR MIT
