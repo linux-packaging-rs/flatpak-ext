@@ -21,10 +21,12 @@ desktop-dst := clean(rootdir / prefix) / 'share' / 'applications' / desktop
 metainfo := APPID + '.metainfo.xml'
 metainfo-src := 'data' / metainfo
 metainfo-dst := clean(rootdir / prefix) / 'share' / 'metainfo' / metainfo
+flatpak-metainfo-dst := flatpak-base-dir / 'share' / 'metainfo' / metainfo
 
 icons := APPID + '.svg'
 icons-src := 'res' / icons
 icons-dst := clean(rootdir / prefix) / 'share' / 'icons' / 'hicolor' / 'scalable' / 'apps' / icons
+flatpak-icons-dst := flatpak-base-dir / 'share' / 'icons' / 'hicolor' / 'scalable' / 'apps' / icons
 
 # Default recipe which runs `just build-release`
 default: build-release
@@ -75,9 +77,9 @@ install:
 # Installs files
 flatpak:
     install -Dm0755 {{bin-src}} {{flatpak-bin-dst}}
-    install -Dm0644 {{desktop-src}} {{desktop-dst}}
-    install -Dm0644 {{metainfo-src}} {{metainfo-dst}}
-    install -Dm0644 {{icons-src}} {{icons-dst}}
+    install -Dm0644 {{desktop-src}} {{flatpak-desktop-dst}}
+    install -Dm0644 {{metainfo-src}} {{flatpak-metainfo-dst}}
+    install -Dm0644 {{icons-src}} {{flatpak-icons-dst}}
 
 # Uninstalls installed files
 uninstall:

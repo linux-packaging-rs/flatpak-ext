@@ -1,9 +1,11 @@
 id: io.github.ryanabx.portapak
 runtime: org.freedesktop.Platform
-runtime-version: '23.08'
+runtime-version: "23.08"
 sdk: org.freedesktop.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.rust-stable
+base: org.flatpak.Builder.BaseApp
+base-version: "23.08"
 command: portapak
 finish-args:
   - "--share=ipc"
@@ -12,8 +14,32 @@ build-options:
   build-args:
     - "--share=network"
   env:
-    CARGO_HOME: "/run/build/cosmic-tasks/cargo"
+    CARGO_HOME: "/run/build/portapak/cargo"
 modules:
+  - name: flatpak
+    config-opts:
+      - "--disable-documentation"
+      - "--disable-seccomp"
+      - "--disable-sandboxed-triggers"
+      - "--disable-system-helper"
+      - "--with-system-install-dir=/var/lib/flatpak"
+    cleanup:
+      - "/etc/profile.d"
+      - "/lib/systemd"
+      - "/share/dbus-1/interfaces/org.freedesktop.*"
+      - "/share/dbus-1/services/org.freedesktop.*"
+      - "/share/gdm"
+    post-install:
+      - "cp /usr/bin/update-mime-database /app/bin"
+      - "cp /usr/bin/update-desktop-database /app/bin"
+    sources:
+      - type: archive
+        url: https://github.com/flatpak/flatpak/releases/download/1.14.8/flatpak-1.14.8.tar.xz
+        sha256: "1016b7327f7af87896f95465f7e5813750d3b7049a3740a1a4ddcb5fa8c5348e"
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/flatpak/flatpak/releases/latest
+          url-query: "\"https://github.com/flatpak/flatpak/releases/download/\\($version)/flatpak-\\($version).tar.xz\""
   - name: just
     buildsystem: simple
     build-commands:
