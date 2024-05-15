@@ -25,7 +25,7 @@ metainfo-dst := clean(rootdir / prefix) / 'share' / 'metainfo' / metainfo
 flatpak-metainfo-dst := flatpak-base-dir / 'share' / 'metainfo' / metainfo
 
 icons := APPID + '.svg'
-icons-src := 'res' / icons
+icons-src := 'data' / icons
 icons-dst := clean(rootdir / prefix) / 'share' / 'icons' / 'hicolor' / 'scalable' / 'apps' / icons
 flatpak-icons-dst := flatpak-base-dir / 'share' / 'icons' / 'hicolor' / 'scalable' / 'apps' / icons
 
