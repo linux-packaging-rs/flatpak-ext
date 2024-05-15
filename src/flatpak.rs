@@ -1,28 +1,51 @@
 use std::{
-    env,
+    env, fs,
     path::{Path, PathBuf},
     thread::sleep,
     time::Duration,
 };
 
+use indicatif::{ProgressBar, ProgressStyle};
 use libflatpak::{
-    glib::object::ObjectExt,
+    glib::{object::ObjectExt, KeyFile, KeyFileFlags},
+    prelude::RemoteRefExt,
     prelude::{
-        InstallationExt, InstallationExtManual, InstalledRefExt, InstanceExt, RefExt, RemoteExt,
-        TransactionExt, TransactionExtManual,
+        BundleRefExt, InstallationExt, InstallationExtManual, InstalledRefExt, InstanceExt, RefExt,
+        RemoteExt, TransactionExt, TransactionExtManual,
     },
-    Installation, LaunchFlags, Remote,
+    BundleRef, Installation, LaunchFlags, Remote,
 };
 use rustix::process::{waitpid, Pid, WaitOptions};
 
 use tempfile::{tempdir_in, TempDir};
 
-use crate::{flathub::flathub_remote, PortapakError};
+use crate::{remotes::flathub_remote, PortapakError, RefType};
 
 #[derive(Debug)]
 pub struct FlatpakRepo {
     pub repo: TempDir,
     pub installation: libflatpak::Installation,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum DependencyInstall {
+    System,
+    User,
+    Temp,
+}
+
+impl From<&str> for DependencyInstall {
+    fn from(value: &str) -> Self {
+        match value {
+            "system" => Self::System,
+            "user" => Self::User,
+            "temp" => Self::Temp,
+            _ => {
+                log::warn!("Value {} not valid. Choosing Temp...", value);
+                Self::Temp
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -32,7 +55,7 @@ pub struct Flatpak {
 }
 
 impl FlatpakRepo {
-    pub fn new() -> Result<Self, PortapakError> {
+    pub fn new(offline: bool) -> Result<Self, PortapakError> {
         let base_path = env::var("XDG_CACHE_HOME")
             .map_or(Path::new(&env::var("HOME").unwrap()).join(".cache"), |x| {
                 Path::new(&x).to_path_buf()
@@ -45,55 +68,129 @@ impl FlatpakRepo {
             true,
             libflatpak::gio::Cancellable::current().as_ref(),
         )?;
-        // Add flathub
-        installation.add_remote(
-            &flathub_remote()?,
-            false,
-            libflatpak::gio::Cancellable::current().as_ref(),
-        )?;
-        log::debug!("Created a flatpak repository at {:?}", repo.path());
+        if !offline {
+            // Add flathub
+            installation.add_remote(
+                &flathub_remote()?,
+                false,
+                libflatpak::gio::Cancellable::current().as_ref(),
+            )?;
+        }
         Ok(Self { repo, installation })
     }
 }
 
 impl Flatpak {
-    pub fn new(app_path: PathBuf, repo: &FlatpakRepo) -> Result<Self, PortapakError> {
-        if !app_path.exists() {
-            return Err(PortapakError::FileNotFound(app_path));
-        }
-        let app_path_file = libflatpak::gio::File::for_path(&app_path);
-        log::info!("Installing {:?}...", &app_path);
+    pub fn new(
+        ref_type: RefType,
+        repo: &FlatpakRepo,
+        deps_to: DependencyInstall,
+        offline: bool,
+    ) -> Result<Self, PortapakError> {
         let transaction = libflatpak::Transaction::for_installation(
             &repo.installation,
             libflatpak::gio::Cancellable::current().as_ref(),
         )?;
+        // Install deps first
+        let dep_install = match deps_to {
+            DependencyInstall::System => libflatpak::Transaction::for_installation(
+                &Installation::new_system(libflatpak::gio::Cancellable::current().as_ref())?,
+                libflatpak::gio::Cancellable::current().as_ref(),
+            )?,
+            DependencyInstall::User => libflatpak::Transaction::for_installation(
+                &Installation::new_user(libflatpak::gio::Cancellable::current().as_ref())?,
+                libflatpak::gio::Cancellable::current().as_ref(),
+            )?,
+            DependencyInstall::Temp => libflatpak::Transaction::for_installation(
+                &repo.installation,
+                libflatpak::gio::Cancellable::current().as_ref(),
+            )?,
+        };
+        dep_install.add_default_dependency_sources();
         // Set up transaction
         transaction.add_default_dependency_sources();
-        transaction.add_install_bundle(&app_path_file, None)?;
-        // Set up connections to signals
-        transaction.connect_operation_error(|a, b, c, d| {
-            log::debug!(
-                "Operation error: {:?} {:?} {:?} {:?}. Stopping transation...",
-                a,
-                b,
-                c,
-                d
-            );
-            false
-        });
-        transaction.connect_operation_done(|_, b, c, _| {
-            log::debug!(
-                "OPERATION: {:?} TYPE: {:?} SHORT_COMMIT: {}",
-                b,
-                b.operation_type(),
-                &c[..6]
-            );
-            log::trace!("METADATA:");
-            for l in b.metadata().unwrap().to_data().lines() {
-                log::trace!("{}", l);
+        match ref_type {
+            RefType::Path { path } => {
+                if !path.exists() {
+                    return Err(PortapakError::FileNotFound(path));
+                }
+                let app_path_file = libflatpak::gio::File::for_path(&path);
+                let bundle = BundleRef::new(&app_path_file)?;
+                let app = bundle.name();
+                log::info!("Installing {:?}...", &app);
+                log::debug!("Bundle origin: {:?}", &bundle.origin());
+                let metadata = KeyFile::new();
+                metadata.load_from_bytes(&bundle.metadata().unwrap(), KeyFileFlags::empty())?;
+                log::info!(
+                    "Bundle metadata keys for Application: {:?}. Runtime: {:?} Ref: {:?}",
+                    metadata.keys("Application"),
+                    metadata.string("Application", "runtime"),
+                    bundle.format_ref()
+                );
+                dep_install.add_install(
+                    "flathub",
+                    &format!(
+                        "runtime/{}",
+                        metadata.string("Application", "runtime").unwrap()
+                    ),
+                    &[],
+                )?;
+                transaction.add_install_bundle(&app_path_file, None)?;
             }
+            RefType::Name { remote, app } => {
+                let rmt = repo
+                    .installation
+                    .remote_by_name(&remote, libflatpak::gio::Cancellable::current().as_ref())?;
+                let branch = Some(rmt.default_branch().unwrap_or("stable".into()));
+                let arch = libflatpak::default_arch();
+                let remote_ref = repo.installation.fetch_remote_ref_sync(
+                    &remote,
+                    libflatpak::RefKind::App,
+                    &app,
+                    arch.as_deref(),
+                    branch.as_deref(),
+                    libflatpak::gio::Cancellable::current().as_ref(),
+                )?;
+                let metadata = KeyFile::new();
+                metadata.load_from_bytes(&remote_ref.metadata().unwrap(), KeyFileFlags::empty())?;
+                dep_install.add_install(
+                    "flathub",
+                    &format!(
+                        "runtime/{}",
+                        metadata.string("Application", "runtime").unwrap()
+                    ),
+                    &[],
+                )?;
+                transaction.add_install(&remote, &remote_ref.format_ref().unwrap(), &[])?;
+            }
+        }
+        // Set up connections to signals
+        dep_install.connect_new_operation(|_, b, c| {
+            let prog_bar = ProgressBar::new(100);
+            prog_bar.set_style(ProgressStyle::default_spinner());
+            prog_bar.set_message(c.status().unwrap_or_default().to_string());
+            log::trace!("{}", b.metadata().unwrap().to_data());
+            c.connect_changed(move |a| {
+                prog_bar.set_position(a.progress() as u64);
+                prog_bar.set_message(a.status().unwrap_or_default().to_string());
+            });
+        });
+        transaction.connect_new_operation(|_, b, c| {
+            let prog_bar = ProgressBar::new(100);
+            prog_bar.set_style(ProgressStyle::default_spinner());
+            prog_bar.set_message(c.status().unwrap_or_default().to_string());
+            log::trace!("{}", b.metadata().unwrap().to_data());
+            c.connect_changed(move |a| {
+                prog_bar.set_position(a.progress() as u64);
+                prog_bar.set_message(a.status().unwrap_or_default().to_string());
+            });
         });
         // Run transaction
+        if !offline {
+            log::debug!("Installing deps");
+            dep_install.run(libflatpak::gio::Cancellable::current().as_ref())?;
+        }
+        log::debug!("Installing application");
         transaction.run(libflatpak::gio::Cancellable::current().as_ref())?;
         let op = transaction.operations().last().unwrap().clone();
         let app_ref = op.get_ref().unwrap();
