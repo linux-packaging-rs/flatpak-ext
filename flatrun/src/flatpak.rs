@@ -1,14 +1,15 @@
-use std::{env, path::Path, process::Command};
+use std::{env, path::Path, process::Command, thread::sleep, time::Duration};
 
 use indicatif::{ProgressBar, ProgressStyle};
 use libflatpak::{
     gio::{prelude::FileExt, File},
     glib::{KeyFile, KeyFileFlags},
+    prelude::InstanceExt,
     prelude::{
-        BundleRefExt, InstallationExt, InstalledRefExt, RefExt, RemoteExt, RemoteRefExt,
-        TransactionExt,
+        BundleRefExt, InstallationExt, InstallationExtManual, InstalledRefExt, RefExt, RemoteExt,
+        RemoteRefExt, TransactionExt,
     },
-    BundleRef, Installation,
+    BundleRef, Installation, LaunchFlags,
 };
 
 use tempfile::{tempdir_in, TempDir};
@@ -217,35 +218,63 @@ impl Flatpak {
     }
 
     pub fn run(&self, repo: &FlatpakRepo) -> Result<(), FlatrunError> {
-        let data = File::for_path("/.flatpak-info");
-        let flatpak_info = KeyFile::new();
-        flatpak_info.load_from_bytes(
-            &data
-                .load_bytes(libflatpak::gio::Cancellable::current().as_ref())?
-                .0,
-            KeyFileFlags::empty(),
-        )?;
-        let flatrun_host_path = Path::new(
-            &flatpak_info
-                .string("Instance", "app-path")
-                .unwrap()
-                .to_string(),
-        )
-        .join("libexec/flatrun-host");
-        let _ = Command::new("sh")
-            .arg("-c")
-            .arg(format!(
-                "flatpak-spawn --host {:?} run {:?} {} {}",
-                flatrun_host_path,
-                repo.repo.path(),
+        if is_flatpaked() {
+            let data = File::for_path("/.flatpak-info");
+            let flatpak_info = KeyFile::new();
+            flatpak_info.load_from_bytes(
+                &data
+                    .load_bytes(libflatpak::gio::Cancellable::current().as_ref())?
+                    .0,
+                KeyFileFlags::empty(),
+            )?;
+            let flatrun_host_path = Path::new(
+                &flatpak_info
+                    .string("Instance", "app-path")
+                    .unwrap()
+                    .to_string(),
+            )
+            .join("libexec/flatrun-host");
+            let _ = Command::new("sh")
+                .arg("-c")
+                .arg(format!(
+                    "flatpak-spawn --host {:?} run {:?} {} {}",
+                    flatrun_host_path,
+                    repo.repo.path(),
+                    &self.app_id,
+                    &self.branch()
+                ))
+                .status();
+            Ok(())
+        } else {
+            let inst = repo.installation.launch_full(
+                LaunchFlags::NONE,
                 &self.app_id,
-                &self.branch()
-            ))
-            .status();
-        Ok(())
+                None,
+                Some(&self.branch()),
+                None,
+                libflatpak::gio::Cancellable::current().as_ref(),
+            );
+            match inst {
+                Ok(i) => {
+                    while i.is_running() {
+                        sleep(Duration::from_millis(1000));
+                    }
+                    log::info!("Instance is no longer running! Exiting...");
+                    Ok(())
+                }
+                Err(e) => {
+                    log::error!("{}", e);
+                    Ok(())
+                }
+            }
+        }
     }
 
     fn branch(&self) -> String {
         self.app_ref.rsplit_once("/").unwrap().1.to_string()
     }
+}
+
+pub fn is_flatpaked() -> bool {
+    Path::new("/.flatpak-info").exists()
 }

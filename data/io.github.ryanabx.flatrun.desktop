@@ -1,9 +1,8 @@
 [Desktop Entry]
 Name=Flatrun
-Exec=flatrun run path %U
+Exec=flatrun --gui %U
 Type=Application
 Icon=io.github.ryanabx.flatrun
-Categories=Flatpak
-NoDisplay=true
-
-MimeType=application/vnd.flatpak;
+Categories=Flatpak;Utilities;
+NoDisplay=false
+GenericName=Application Launcher

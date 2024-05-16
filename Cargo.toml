@@ -4,6 +4,7 @@ members = [
     "flatrun",
     "flatrun-host"
 ]
+resolver = "2"
 
 [workspace.dependencies]
 clap = { version = "4.5.4", features = ["derive"] }

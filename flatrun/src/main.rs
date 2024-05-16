@@ -1,8 +1,12 @@
 mod flatpak;
 mod remotes;
 
-use std::{path::PathBuf, string::FromUtf8Error};
+use std::{
+    path::{Path, PathBuf},
+    string::FromUtf8Error,
+};
 
+use ashpd::desktop::file_chooser::{Choice, FileFilter, SelectedFiles};
 use clap::{arg, Parser, Subcommand};
 use flatpak::DependencyInstall;
 
@@ -14,6 +18,7 @@ pub enum FlatrunError {
     CommandUnsuccessful(String),
     FileNotFound(PathBuf),
     GLib(libflatpak::glib::Error),
+    Ashpd(ashpd::Error),
 }
 
 impl From<std::io::Error> for FlatrunError {
@@ -34,12 +39,21 @@ impl From<libflatpak::glib::Error> for FlatrunError {
     }
 }
 
+impl From<ashpd::Error> for FlatrunError {
+    fn from(value: ashpd::Error) -> Self {
+        Self::Ashpd(value)
+    }
+}
+
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
     #[command(subcommand)]
     /// command to run
     command: Option<FlatrunCommand>,
+    // run the graphical version
+    #[arg(short, long)]
+    gui: bool,
 }
 
 #[derive(Subcommand)]
@@ -84,7 +98,8 @@ enum RefType {
     },
 }
 
-fn main() -> Result<(), FlatrunError> {
+#[async_std::main]
+async fn main() -> Result<(), FlatrunError> {
     env_logger::init();
     let cli = Cli::parse();
     match &cli.command {
@@ -113,8 +128,33 @@ fn main() -> Result<(), FlatrunError> {
             RefType::Path { path } => Ok(()),
         },
         None => {
-            log::error!("no option specified! use flatrun --help to see options");
-            Ok(())
+            let files = SelectedFiles::open_file()
+                .title("Flatrun: Choose a flatpak to run!")
+                .accept_label("Run Flatpak")
+                .modal(true)
+                .multiple(false)
+                .filter(FileFilter::new(".flatpak").mimetype("application/vnd.flatpak"))
+                .send()
+                .await?
+                .response()?;
+            if let Some(uri) = files.uris().first() {
+                println!("Got path {}", uri.path());
+                let reftype = RefType::Path {
+                    path: Path::new(uri.path()).to_owned(),
+                };
+                match run(reftype.clone(), false, DependencyInstall::default()) {
+                    Ok(()) => Ok(()),
+                    Err(e) => {
+                        log::error!("{:?}", e);
+                        Ok(())
+                    }
+                }
+            } else {
+                log::error!("no option specified! use flatrun --help to see options");
+                Err(FlatrunError::CommandUnsuccessful(
+                    "No file specified".to_string(),
+                ))
+            }
         }
     }
 }

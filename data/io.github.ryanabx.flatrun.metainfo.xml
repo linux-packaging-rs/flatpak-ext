@@ -7,7 +7,7 @@
     <summary>Run flatpaks without installing them!</summary>
     <description>
         <p>
-            Flatrun is a command-line program that allows users to run Flatpak applications without installing them to their main system or user installation. Runtimes are installed to the system installation by default, for reuse.
+            Flatrun is a command-line or GUI program that allows users to run Flatpak applications without installing them to their main system or user installation. Runtimes are installed to the system installation by default, for reuse.
         </p>
     </description>
     <developer_name>Ryan Brue</developer_name>
