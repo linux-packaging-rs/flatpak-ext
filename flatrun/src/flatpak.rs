@@ -21,9 +21,10 @@ pub struct FlatpakRepo {
     pub installation: libflatpak::Installation,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub enum DependencyInstall {
     System,
+    #[default]
     User,
     Temp,
 }
@@ -34,10 +35,7 @@ impl From<&str> for DependencyInstall {
             "system" => Self::System,
             "user" => Self::User,
             "temp" => Self::Temp,
-            _ => {
-                log::warn!("Value {} not valid. Choosing Temp...", value);
-                Self::Temp
-            }
+            _ => Self::default(),
         }
     }
 }

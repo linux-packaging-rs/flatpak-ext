@@ -96,7 +96,7 @@ fn main() -> Result<(), FlatrunError> {
             match run(
                 reftype.clone(),
                 *offline,
-                DependencyInstall::from(deps_to.as_deref().unwrap_or("system")),
+                DependencyInstall::from(deps_to.as_deref().unwrap_or_default()),
             ) {
                 Ok(()) => Ok(()),
                 Err(e) => {
