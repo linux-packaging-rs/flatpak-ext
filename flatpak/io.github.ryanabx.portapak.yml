@@ -11,10 +11,13 @@ finish-args:
   - "--filesystem=/var/lib/flatpak"
   - "--filesystem=host"
   - "--share=network"
+  - "--allow=devel"
 build-options:
   append-path: "/usr/lib/sdk/rust-stable/bin"
   build-args:
     - "--share=network"
+    - "--filesystem=host"
+    - "--allow=devel"
   env:
     CARGO_HOME: "/run/build/portapak/cargo"
 modules:
