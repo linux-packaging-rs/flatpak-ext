@@ -1,6 +1,7 @@
 use std::{
     env, fs,
     path::{Path, PathBuf},
+    process::Command,
     thread::sleep,
     time::Duration,
 };
@@ -225,28 +226,41 @@ impl Flatpak {
     }
 
     pub fn run(&self, repo: &FlatpakRepo) -> Result<(), PortapakError> {
-        let inst = repo.installation.launch_full(
-            LaunchFlags::NONE,
-            &self.app_id,
-            None,
-            Some(&self.branch()),
-            None,
-            libflatpak::gio::Cancellable::current().as_ref(),
-        );
-        match inst {
-            Ok(i) => {
-                while i.is_running() {
-                    sleep(Duration::from_millis(1000));
-                }
-                log::info!("Instance is no longer running! Removing repo...");
-                Ok(())
-            }
-            Err(e) => {
-                log::error!("{}", e);
-                Ok(())
-            }
-        }
+        let _ = Command::new("sh")
+            .arg("-c")
+            .arg(format!(
+                "flatpak-spawn --host sh -c \"FLATPAK_USER_DIR={:?} flatpak run --user {}\"",
+                repo.repo.path(),
+                &self.app_id
+            ))
+            .status();
+        Ok(())
     }
+
+    // FIXME: It would be nice to use libflatpak for this...
+    // pub fn run(&self, repo: &FlatpakRepo) -> Result<(), PortapakError> {
+    //     let inst = repo.installation.launch_full(
+    //         LaunchFlags::NONE,
+    //         &self.app_id,
+    //         None,
+    //         Some(&self.branch()),
+    //         None,
+    //         libflatpak::gio::Cancellable::current().as_ref(),
+    //     );
+    //     match inst {
+    //         Ok(i) => {
+    //             while i.is_running() {
+    //                 sleep(Duration::from_millis(1000));
+    //             }
+    //             log::info!("Instance is no longer running! Removing repo...");
+    //             Ok(())
+    //         }
+    //         Err(e) => {
+    //             log::error!("{}", e);
+    //             Ok(())
+    //         }
+    //     }
+    // }
 
     fn branch(&self) -> String {
         self.app_ref.rsplit_once("/").unwrap().1.to_string()
