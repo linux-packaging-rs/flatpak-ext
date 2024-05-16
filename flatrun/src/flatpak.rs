@@ -237,7 +237,7 @@ impl Flatpak {
         let _ = Command::new("sh")
             .arg("-c")
             .arg(format!(
-                "flatpak-spawn --host {:?} {:?} {} {}",
+                "flatpak-spawn --host {:?} run {:?} {} {}",
                 flatrun_host_path,
                 repo.repo.path(),
                 &self.app_id,
