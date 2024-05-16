@@ -11,9 +11,8 @@ finish-args:
   - "--share=ipc"
   - "--filesystem=~/.local/share/flatpak"
   - "--filesystem=/var/lib/flatpak"
-  - "--filesystem=host"
   - "--share=network"
-  - "--allow=devel"
+  - "--talk-name=org.freedesktop.Flatpak"
 build-options:
   append-path: "/usr/lib/sdk/rust-stable/bin"
   build-args:
