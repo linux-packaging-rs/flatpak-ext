@@ -1,5 +1,6 @@
-name := 'portapak'
-export APPID := 'io.github.ryanabx.portapak'
+name := 'flatrun'
+host-name := 'flatrun-host'
+export APPID := 'io.github.ryanabx.flatrun'
 
 rootdir := ''
 prefix := '/usr'
@@ -11,22 +12,21 @@ flatpak-base-dir := absolute_path(clean(rootdir / flatpak-prefix))
 export INSTALL_DIR := base-dir / 'share'
 
 bin-src := 'target' / 'release' / name
-bin-dst := base-dir / 'bin' / name
 flatpak-bin-dst := flatpak-base-dir / 'bin' / name
+
+bin-host-src := 'target' / 'release' / host-name
+flatpak-bin-host-dst := flatpak-base-dir / 'libexec' / host-name
 
 desktop := APPID + '.desktop'
 desktop-src := 'data' / desktop
-desktop-dst := clean(rootdir / prefix) / 'share' / 'applications' / desktop
 flatpak-desktop-dst := flatpak-base-dir / 'share' / 'applications' / desktop
 
 metainfo := APPID + '.metainfo.xml'
 metainfo-src := 'data' / metainfo
-metainfo-dst := clean(rootdir / prefix) / 'share' / 'metainfo' / metainfo
 flatpak-metainfo-dst := flatpak-base-dir / 'share' / 'metainfo' / metainfo
 
 icons := APPID + '.svg'
 icons-src := 'data' / icons
-icons-dst := clean(rootdir / prefix) / 'share' / 'icons' / 'hicolor' / 'scalable' / 'apps' / icons
 flatpak-icons-dst := flatpak-base-dir / 'share' / 'icons' / 'hicolor' / 'scalable' / 'apps' / icons
 
 # Default recipe which runs `just build-release`
@@ -66,28 +66,15 @@ dev *args:
 
 # Run with debug logs
 run *args:
-    env RUST_LOG=cosmic_tasks=info RUST_BACKTRACE=full cargo run --release {{args}}
-
-# Installs files
-install:
-    install -Dm0755 {{bin-src}} {{bin-dst}}
-    install -Dm0644 {{desktop-src}} {{desktop-dst}}
-    install -Dm0644 {{metainfo-src}} {{metainfo-dst}}
-    install -Dm0644 {{icons-src}} {{icons-dst}}
+    env RUST_LOG=flatrun=info RUST_BACKTRACE=full cargo run --release {{args}}
 
 # Installs files
 flatpak:
     install -Dm0755 {{bin-src}} {{flatpak-bin-dst}}
+    install -Dm0755 {{bin-host-src}} {{flatpak-bin-host-dst}}
     install -Dm0644 {{desktop-src}} {{flatpak-desktop-dst}}
     install -Dm0644 {{metainfo-src}} {{flatpak-metainfo-dst}}
     install -Dm0644 {{icons-src}} {{flatpak-icons-dst}}
-
-# Uninstalls installed files
-uninstall:
-    rm {{bin-dst}}
-    rm {{desktop-dst}}
-    rm {{metainfo-dst}}
-    rm {{icons-dst}}
 
 # Vendor dependencies locally
 vendor:

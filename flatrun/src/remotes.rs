@@ -1,8 +1,8 @@
 use libflatpak::{prelude::RemoteExt, Remote};
 
-use crate::PortapakError;
+use crate::FlatrunError;
 
-pub fn flathub_remote() -> Result<Remote, PortapakError> {
+pub fn flathub_remote() -> Result<Remote, FlatrunError> {
     let flathub = Remote::new("flathub");
     flathub.set_url("https://dl.flathub.org/repo/");
     flathub.set_homepage("https://flathub.org");

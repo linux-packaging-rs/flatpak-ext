@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=Portapak
-Exec=portapak run path %U
+Name=Flatrun
+Exec=flatrun run path %U
 Type=Application
-Icon=io.github.ryanabx.portapak
+Icon=io.github.ryanabx.flatrun
 Categories=Flatpak
 NoDisplay=true
 

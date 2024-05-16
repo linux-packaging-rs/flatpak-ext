@@ -8,7 +8,7 @@
 # prevent library files from being installed
 %global cargo_install_lib 0
 
-Name:           portapak
+Name:           flatrun
 Version:        %{ver}~git%{date}.%{sub %{commit} 1 7}
 Release:        %autorelease
 Summary:        Run flatpak applications without installation
@@ -23,7 +23,7 @@ SourceLicense:  MIT
 License:        (MIT OR Apache-2.0) AND Unicode-DFS-2016 AND Apache-2.0 AND Apache-2.0 OR MIT AND MIT AND MIT OR Apache-2.0 AND Unlicense OR MIT
 # LICENSE.dependencies contains a full license breakdown
 
-URL:            https://github.com/ryanabx/portapak
+URL:            https://github.com/ryanabx/flatrun
 
 # To create this source:
 # * git clone the repository
@@ -56,8 +56,8 @@ Requires:       flatpak
 
 %install
 %cargo_install
-install -Dm0644 data/io.github.ryanabx.portapak.desktop %{buildroot}/%{_datadir}/applications/io.github.ryanabx.portapak.desktop
-install -Dm0644 data/io.github.ryanabx.portapak.svg %{buildroot}/%{_datadir}/icons/hicolor/scalable/apps/io.github.ryanabx.portapak.svg
+install -Dm0644 data/io.github.ryanabx.flatrun.desktop %{buildroot}/%{_datadir}/applications/io.github.ryanabx.flatrun.desktop
+install -Dm0644 data/io.github.ryanabx.flatrun.svg %{buildroot}/%{_datadir}/icons/hicolor/scalable/apps/io.github.ryanabx.flatrun.svg
 
 %if %{with check}
 %check
@@ -68,9 +68,9 @@ install -Dm0644 data/io.github.ryanabx.portapak.svg %{buildroot}/%{_datadir}/ico
 %license LICENSE
 %license LICENSE.dependencies
 %doc README.md
-%{_bindir}/portapak
-%{_datadir}/applications/io.github.ryanabx.portapak.desktop
-%{_datadir}/icons/hicolor/scalable/apps/io.github.ryanabx.portapak.svg
+%{_bindir}/flatrun
+%{_datadir}/applications/io.github.ryanabx.flatrun.desktop
+%{_datadir}/icons/hicolor/scalable/apps/io.github.ryanabx.flatrun.svg
 
 %changelog
 %autochangelog

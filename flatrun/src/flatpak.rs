@@ -1,26 +1,19 @@
-use std::{
-    env, fs,
-    path::{Path, PathBuf},
-    process::Command,
-    thread::sleep,
-    time::Duration,
-};
+use std::{env, path::Path, process::Command};
 
 use indicatif::{ProgressBar, ProgressStyle};
 use libflatpak::{
-    glib::{object::ObjectExt, KeyFile, KeyFileFlags},
-    prelude::RemoteRefExt,
+    gio::{prelude::FileExt, File},
+    glib::{KeyFile, KeyFileFlags},
     prelude::{
-        BundleRefExt, InstallationExt, InstallationExtManual, InstalledRefExt, InstanceExt, RefExt,
-        RemoteExt, TransactionExt, TransactionExtManual,
+        BundleRefExt, InstallationExt, InstalledRefExt, RefExt, RemoteExt, RemoteRefExt,
+        TransactionExt,
     },
-    BundleRef, Installation, LaunchFlags, Remote,
+    BundleRef, Installation,
 };
-use rustix::process::{waitpid, Pid, WaitOptions};
 
 use tempfile::{tempdir_in, TempDir};
 
-use crate::{remotes::flathub_remote, PortapakError, RefType};
+use crate::{remotes::flathub_remote, FlatrunError, RefType};
 
 #[derive(Debug)]
 pub struct FlatpakRepo {
@@ -56,7 +49,7 @@ pub struct Flatpak {
 }
 
 impl FlatpakRepo {
-    pub fn new(offline: bool) -> Result<Self, PortapakError> {
+    pub fn new(offline: bool) -> Result<Self, FlatrunError> {
         let base_path = env::var("XDG_CACHE_HOME")
             .map_or(Path::new(&env::var("HOME").unwrap()).join(".cache"), |x| {
                 Path::new(&x).to_path_buf()
@@ -87,7 +80,7 @@ impl Flatpak {
         repo: &FlatpakRepo,
         deps_to: DependencyInstall,
         offline: bool,
-    ) -> Result<Self, PortapakError> {
+    ) -> Result<Self, FlatrunError> {
         let app_install = libflatpak::Transaction::for_installation(
             &repo.installation,
             libflatpak::gio::Cancellable::current().as_ref(),
@@ -113,7 +106,7 @@ impl Flatpak {
         let (app_name, runtime_name) = match ref_type {
             RefType::Path { path } => {
                 if !path.exists() {
-                    return Err(PortapakError::FileNotFound(path));
+                    return Err(FlatrunError::FileNotFound(path));
                 }
                 let app_path_file = libflatpak::gio::File::for_path(&path);
                 let bundle = BundleRef::new(&app_path_file)?;
@@ -225,42 +218,34 @@ impl Flatpak {
         })
     }
 
-    pub fn run(&self, repo: &FlatpakRepo) -> Result<(), PortapakError> {
+    pub fn run(&self, repo: &FlatpakRepo) -> Result<(), FlatrunError> {
+        let data = File::for_path("/.flatpak-info");
+        let flatpak_info = KeyFile::new();
+        flatpak_info.load_from_bytes(
+            &data
+                .load_bytes(libflatpak::gio::Cancellable::current().as_ref())?
+                .0,
+            KeyFileFlags::empty(),
+        )?;
+        let flatrun_host_path = Path::new(
+            &flatpak_info
+                .string("Instance", "app-path")
+                .unwrap()
+                .to_string(),
+        )
+        .join("libexec/flatrun-host");
         let _ = Command::new("sh")
             .arg("-c")
             .arg(format!(
-                "flatpak-spawn --host sh -c \"FLATPAK_USER_DIR={:?} flatpak run --user {}\"",
+                "flatpak-spawn --host {:?} {:?} {} {}",
+                flatrun_host_path,
                 repo.repo.path(),
-                &self.app_id
+                &self.app_id,
+                &self.branch()
             ))
             .status();
         Ok(())
     }
-
-    // FIXME: It would be nice to use libflatpak for this...
-    // pub fn run(&self, repo: &FlatpakRepo) -> Result<(), PortapakError> {
-    //     let inst = repo.installation.launch_full(
-    //         LaunchFlags::NONE,
-    //         &self.app_id,
-    //         None,
-    //         Some(&self.branch()),
-    //         None,
-    //         libflatpak::gio::Cancellable::current().as_ref(),
-    //     );
-    //     match inst {
-    //         Ok(i) => {
-    //             while i.is_running() {
-    //                 sleep(Duration::from_millis(1000));
-    //             }
-    //             log::info!("Instance is no longer running! Removing repo...");
-    //             Ok(())
-    //         }
-    //         Err(e) => {
-    //             log::error!("{}", e);
-    //             Ok(())
-    //         }
-    //     }
-    // }
 
     fn branch(&self) -> String {
         self.app_ref.rsplit_once("/").unwrap().1.to_string()

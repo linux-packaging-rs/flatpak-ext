@@ -1,45 +1,36 @@
 mod flatpak;
-mod portapak_run;
 mod remotes;
 
 use std::{path::PathBuf, string::FromUtf8Error};
 
 use clap::{arg, Parser, Subcommand};
 use flatpak::DependencyInstall;
-use rustix::io::Errno;
 
 use crate::flatpak::{Flatpak, FlatpakRepo};
 
 #[derive(Debug)]
-pub enum PortapakError {
+pub enum FlatrunError {
     IO(std::io::Error),
     CommandUnsuccessful(String),
     FileNotFound(PathBuf),
     GLib(libflatpak::glib::Error),
-    Errno(Errno),
 }
 
-impl From<std::io::Error> for PortapakError {
+impl From<std::io::Error> for FlatrunError {
     fn from(value: std::io::Error) -> Self {
         Self::IO(value)
     }
 }
 
-impl From<FromUtf8Error> for PortapakError {
+impl From<FromUtf8Error> for FlatrunError {
     fn from(e: FromUtf8Error) -> Self {
         Self::CommandUnsuccessful(e.to_string())
     }
 }
 
-impl From<libflatpak::glib::Error> for PortapakError {
+impl From<libflatpak::glib::Error> for FlatrunError {
     fn from(value: libflatpak::glib::Error) -> Self {
         Self::GLib(value)
-    }
-}
-
-impl From<Errno> for PortapakError {
-    fn from(value: Errno) -> Self {
-        Self::Errno(value)
     }
 }
 
@@ -48,11 +39,11 @@ impl From<Errno> for PortapakError {
 struct Cli {
     #[command(subcommand)]
     /// command to run
-    command: Option<PortapakCommand>,
+    command: Option<FlatrunCommand>,
 }
 
 #[derive(Subcommand)]
-enum PortapakCommand {
+enum FlatrunCommand {
     /// run a flatpak file (.flatpak, .flatpakref)
     Run {
         #[command(subcommand)]
@@ -93,16 +84,16 @@ enum RefType {
     },
 }
 
-fn main() -> Result<(), PortapakError> {
+fn main() -> Result<(), FlatrunError> {
     env_logger::init();
     let cli = Cli::parse();
     match &cli.command {
-        Some(PortapakCommand::Run {
+        Some(FlatrunCommand::Run {
             reftype,
             offline,
             deps_to,
         }) => {
-            match portapak_run::run(
+            match run(
                 reftype.clone(),
                 *offline,
                 DependencyInstall::from(deps_to.as_deref().unwrap_or("system")),
@@ -114,7 +105,7 @@ fn main() -> Result<(), PortapakError> {
                 }
             }
         }
-        Some(PortapakCommand::CreateBundle {
+        Some(FlatrunCommand::CreateBundle {
             reftype,
             include_deps,
         }) => match reftype {
@@ -122,8 +113,16 @@ fn main() -> Result<(), PortapakError> {
             RefType::Path { path } => Ok(()),
         },
         None => {
-            log::error!("no option specified! use portapak --help to see options");
+            log::error!("no option specified! use flatrun --help to see options");
             Ok(())
         }
     }
+}
+
+fn run(app: RefType, offline: bool, dependencies: DependencyInstall) -> Result<(), FlatrunError> {
+    log::info!("requested flatpak: {:?}", app);
+    let repo = FlatpakRepo::new(offline)?;
+    let flatpak = Flatpak::new(app, &repo, dependencies, offline)?;
+    flatpak.run(&repo)?;
+    Ok(())
 }

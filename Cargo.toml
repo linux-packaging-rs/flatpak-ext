@@ -1,20 +1,12 @@
-[package]
-name = "portapak"
-version = "0.1.0"
-edition = "2021"
-authors = ["Ryan Brue <ryanbrue@gmail.com>"]
-readme = "README.md"
-homepage = "https://ryanabx.github.io/portapak"
-repository = "https://github.com/ryanabx/portapak"
-license = "Apache-2.0"
+[workspace]
+default-members = ["flatrun", "flatrun-host"]
+members = [
+    "flatrun",
+    "flatrun-host"
+]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
+[workspace.dependencies]
 clap = { version = "4.5.4", features = ["derive"] }
 env_logger = "0.11.3"
-indicatif = "0.17.8"
 libflatpak = "0.5.0"
 log = "0.4.21"
-rustix = { version = "0.38.34", features = ["process"] }
-tempfile = "3.10.1"
