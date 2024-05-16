@@ -2,10 +2,14 @@
 <component type="console-application">
     <id>io.github.ryanabx.portapak</id>
     <name>Portapak</name>
-    <metadata_license>MIT</metadata_license>
+    <metadata_license>CC0-1.0</metadata_license>
     <project_license>MIT</project_license>
     <summary>Run flatpaks without installing them!</summary>
-    <description>Portapak is a command-line program that allows users to run Flatpak applications without installing them to their main system or user installation. Runtimes are installed to the system installation by default, for reuse.</description>
+    <description>
+        <p>
+            Portapak is a command-line program that allows users to run Flatpak applications without installing them to their main system or user installation. Runtimes are installed to the system installation by default, for reuse.
+        </p>
+    </description>
     <developer_name>Ryan Brue</developer_name>
     <update_contact>ryanbrue@gmail.com</update_contact>
 </component>

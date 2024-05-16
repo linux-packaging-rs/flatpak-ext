@@ -4,11 +4,13 @@ runtime-version: "23.08"
 sdk: org.freedesktop.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.rust-stable
-base: org.flatpak.Builder.BaseApp
-base-version: "23.08"
-command: portapak
+command: library-escape portapak
 finish-args:
   - "--share=ipc"
+  - "--filesystem=~/.local/share/flatpak"
+  - "--filesystem=/var/lib/flatpak"
+  - "--filesystem=host"
+  - "--share=network"
 build-options:
   append-path: "/usr/lib/sdk/rust-stable/bin"
   build-args:
@@ -62,9 +64,10 @@ modules:
   - name: portapak
     buildsystem: simple
     build-commands:
-      - just vendor
-      - just build-vendored
-      - just flatpak
+      - install -Dm0755 flatpak/library-escape.sh /app/bin/library-escape
+      - library-escape just vendor
+      - library-escape just build-vendored
+      - library-escape just flatpak
     sources:
       - type: git
         url: https://github.com/ryanabx/portapak.git
