@@ -12,4 +12,6 @@
     </description>
     <developer_name>Ryan Brue</developer_name>
     <update_contact>ryanbrue@gmail.com</update_contact>
+    <url type="homepage">https://ryanabx.github.io/portapak</url>
+    <launchable type="desktop-id">io.github.ryanabx.portapak.desktop</launchable>
 </component>
