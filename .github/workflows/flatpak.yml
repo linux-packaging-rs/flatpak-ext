@@ -1,0 +1,19 @@
+on:
+  push:
+    branches: [master]
+  pull_request:
+name: Build Flatpak Bundle
+jobs:
+  flatpak:
+    name: "Flatpak Bundle"
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-44
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v4
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: io.github.ryanabx.portapak.flatpak
+        manifest-path: flatpak/io.github.ryanabx.portapak.yml
+        cache-key: flatpak-builder-${{ github.sha }}
