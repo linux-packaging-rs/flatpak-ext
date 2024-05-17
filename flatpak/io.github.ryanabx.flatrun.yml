@@ -9,10 +9,13 @@ separate-locales: false
 command: flatrun
 finish-args:
   - "--share=ipc"
-  - "--filesystem=home:ro"
-  - "--filesystem=~/.local/share/flatpak"
+# Access to system/user flatpak repositores is necessary for
+# libflatpak to run.
+  - "--filesystem=xdg-data/flatpak"
   - "--filesystem=/var/lib/flatpak"
+# Necessary for downloading runtimes if they aren't installed
   - "--share=network"
+# Necessary for running the flatpak at the end, runs through flatrun-host
   - "--talk-name=org.freedesktop.Flatpak"
 build-options:
   append-path: "/usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/llvm16/bin"
@@ -24,9 +27,9 @@ build-options:
     MOUNT_FUSE_PATH: "../tmp/"
     V: "1"
 modules:
-# install libflatpak
+# Install libflatpak
   - libflatpak.json
-# install flatrun
+# Install flatrun
   - name: just
     buildsystem: simple
     build-commands:

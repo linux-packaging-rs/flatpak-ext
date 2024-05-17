@@ -1,13 +1,12 @@
 mod flatpak;
-mod remotes;
 
 use std::{
     path::{Path, PathBuf},
     string::FromUtf8Error,
 };
 
-use ashpd::desktop::file_chooser::{Choice, FileFilter, SelectedFiles};
-use clap::{arg, Parser, Subcommand};
+use ashpd::desktop::file_chooser::{FileFilter, SelectedFiles};
+use clap::{arg, Args, Parser};
 use flatpak::DependencyInstall;
 
 use crate::flatpak::{Flatpak, FlatpakRepo};
@@ -47,87 +46,69 @@ impl From<ashpd::Error> for FlatrunError {
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
+#[command(propagate_version = true)]
+/// Flatrun: Run flatpak applications without install!
 struct Cli {
-    #[command(subcommand)]
-    /// command to run
-    command: Option<FlatrunCommand>,
-    // run the graphical version
-    #[arg(short, long)]
+    #[arg(long)]
+    /// Run the graphical version of flatrun
     gui: bool,
+    #[arg(short, long, conflicts_with = "from_download")]
+    /// Run the application completely offline
+    offline: bool,
+    #[arg(short, long, conflicts_with = "path", requires_all = ["remote", "name"])]
+    /// Download a flatpak from a named remote
+    download: bool,
+    #[arg(
+        short,
+        long,
+        value_name = "DOWNLOAD:REMOTE",
+        conflicts_with = "path",
+        requires_all = ["download", "name"]
+    )]
+    /// Named remote for the flatpak (i.e. flathub)
+    remote: Option<String>,
+    #[arg(
+        short,
+        long,
+        value_name = "DOWNLOAD:APPID",
+        conflicts_with = "path",
+        requires_all = ["download", "remote"]
+    )]
+    /// Application id of the flatpak (i.e. com.visualstudio.code)
+    name: Option<String>,
+    #[arg(
+        value_name = "BY_PATH:PATH",
+        conflicts_with_all = ["download", "remote", "name"]
+    )]
+    /// Path of the .flatpak file to run (i.e. /home/1000/inkscape.flatpak)
+    path: Option<PathBuf>,
 }
 
-#[derive(Subcommand)]
-enum FlatrunCommand {
-    /// run a flatpak file (.flatpak, .flatpakref)
-    Run {
-        #[command(subcommand)]
-        reftype: RefType,
-        /// run the flatpak offline (will error out if deps don't exist)
-        #[arg(short, long)]
-        offline: bool,
-        /// put any non-downloaded dependencies in this repo (system|user|temp)
-        #[arg(conflicts_with = "offline")]
-        deps_to: Option<String>,
-    },
-    /// create a bundle for a flatpak
-    CreateBundle {
-        #[command(subcommand)]
-        reftype: RefType,
-        /// whether to include dependencies (i.e. runtimes) in the bundle
-        #[arg(short, long)]
-        include_deps: bool,
-    },
+#[derive(Args, Debug, Clone)]
+struct NameCommand {
+    /// named remote for the flatpak (i.e. flathub)
+    #[arg(value_name = "REMOTE", conflicts_with = "path")]
+    remote: String,
+    /// id of the flatpak (i.e. com.visualstudio.code)
+    #[arg(value_name = "APPID", conflicts_with = "path")]
+    app: String,
 }
 
-#[derive(Subcommand, Debug, Clone)]
+#[derive(Clone, Debug)]
 enum RefType {
-    /// specify the flatpak by name and if not installed, a named remote
-    Name {
-        /// named remote for the flatpak (i.e. flathub)
-        #[arg(value_name = "REMOTE")]
-        remote: String,
-        /// id of the flatpak (i.e. com.visualstudio.code)
-        #[arg(value_name = "APPID")]
-        app: String,
-    },
-    /// specify the flatpak by a path to a .flatpak or .flatpakref
-    Path {
-        /// path to the flatpak to run (.flatpak, .flatpakref)
-        #[arg(value_name = "FILE")]
-        path: PathBuf,
-    },
+    Path(PathBuf),
+    Name { remote: String, app: String },
 }
 
 #[async_std::main]
 async fn main() -> Result<(), FlatrunError> {
     env_logger::init();
     let cli = Cli::parse();
-    match &cli.command {
-        Some(FlatrunCommand::Run {
-            reftype,
-            offline,
-            deps_to,
-        }) => {
-            match run(
-                reftype.clone(),
-                *offline,
-                DependencyInstall::from(deps_to.as_deref().unwrap_or_default()),
-            ) {
-                Ok(()) => Ok(()),
-                Err(e) => {
-                    log::error!("{:?}", e);
-                    Ok(())
-                }
-            }
-        }
-        Some(FlatrunCommand::CreateBundle {
-            reftype,
-            include_deps,
-        }) => match reftype {
-            RefType::Name { remote, app } => Ok(()),
-            RefType::Path { path } => Ok(()),
-        },
-        None => {
+    let ref_type = if !cli.download {
+        if let Some(path) = cli.path {
+            RefType::Path(path)
+        } else {
+            // use xdg-desktop-portal
             let files = SelectedFiles::open_file()
                 .title("Flatrun: Choose a flatpak to run!")
                 .accept_label("Run Flatpak")
@@ -139,22 +120,28 @@ async fn main() -> Result<(), FlatrunError> {
                 .response()?;
             if let Some(uri) = files.uris().first() {
                 println!("Got path {}", uri.path());
-                let reftype = RefType::Path {
-                    path: Path::new(uri.path()).to_owned(),
-                };
-                match run(reftype.clone(), false, DependencyInstall::default()) {
-                    Ok(()) => Ok(()),
-                    Err(e) => {
-                        log::error!("{:?}", e);
-                        Ok(())
-                    }
-                }
+                RefType::Path(Path::new(uri.path()).to_owned())
             } else {
                 log::error!("no option specified! use flatrun --help to see options");
-                Err(FlatrunError::CommandUnsuccessful(
-                    "No file specified".to_string(),
-                ))
+                return Err(FlatrunError::CommandUnsuccessful(
+                    "[BY_PATH] No file specified".to_string(),
+                ));
             }
+        }
+    } else {
+        if let (Some(remote), Some(app)) = (cli.remote, cli.name) {
+            RefType::Name { remote, app }
+        } else {
+            return Err(FlatrunError::CommandUnsuccessful(
+                "[DOWNLOAD] You must specify a remote and an appid.".to_string(),
+            ));
+        }
+    };
+    match run(ref_type.clone(), cli.offline, DependencyInstall::default()) {
+        Ok(()) => Ok(()),
+        Err(e) => {
+            log::error!("{:?}", e);
+            Ok(())
         }
     }
 }

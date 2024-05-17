@@ -4,17 +4,16 @@ use indicatif::{ProgressBar, ProgressStyle};
 use libflatpak::{
     gio::{prelude::FileExt, File},
     glib::{KeyFile, KeyFileFlags},
-    prelude::InstanceExt,
     prelude::{
-        BundleRefExt, InstallationExt, InstallationExtManual, InstalledRefExt, RefExt, RemoteExt,
-        RemoteRefExt, TransactionExt,
+        BundleRefExt, InstallationExt, InstallationExtManual, InstalledRefExt, InstanceExt, RefExt,
+        RemoteExt, RemoteRefExt, TransactionExt,
     },
-    BundleRef, Installation, LaunchFlags,
+    BundleRef, Installation, LaunchFlags, Remote,
 };
 
 use tempfile::{tempdir_in, TempDir};
 
-use crate::{remotes::flathub_remote, FlatrunError, RefType};
+use crate::{FlatrunError, RefType};
 
 #[derive(Debug)]
 pub struct FlatpakRepo {
@@ -103,7 +102,7 @@ impl Flatpak {
         // Set up transaction
         app_install.add_default_dependency_sources();
         let (app_name, runtime_name) = match ref_type {
-            RefType::Path { path } => {
+            RefType::Path(path) => {
                 if !path.exists() {
                     return Err(FlatrunError::FileNotFound(path));
                 }
@@ -277,4 +276,17 @@ impl Flatpak {
 
 pub fn is_flatpaked() -> bool {
     Path::new("/.flatpak-info").exists()
+}
+
+pub fn flathub_remote() -> Result<Remote, FlatrunError> {
+    let flathub = Remote::new("flathub");
+    flathub.set_url("https://dl.flathub.org/repo/");
+    flathub.set_homepage("https://flathub.org");
+    flathub.set_comment("Central repository of Flatpak applications");
+    flathub.set_description("Central repository of Flatpak applications");
+    flathub.set_icon("https://dl.flathub.org/repo/logo.svg");
+    // TODO: Get binary gpg key
+    // flathub.set_gpg_key({{KEY}});
+    flathub.set_gpg_verify(false);
+    Ok(flathub)
 }

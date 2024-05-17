@@ -21,10 +21,6 @@ desktop := APPID + '.desktop'
 desktop-src := 'data' / desktop
 flatpak-desktop-dst := flatpak-base-dir / 'share' / 'applications' / desktop
 
-desktop-open := APPID + '.open.desktop'
-desktop-src-open := 'data' / desktop-open
-flatpak-desktop-dst-open := flatpak-base-dir / 'share' / 'applications' / desktop-open
-
 metainfo := APPID + '.metainfo.xml'
 metainfo-src := 'data' / metainfo
 flatpak-metainfo-dst := flatpak-base-dir / 'share' / 'metainfo' / metainfo
@@ -77,7 +73,6 @@ flatpak:
     install -Dm0755 {{bin-src}} {{flatpak-bin-dst}}
     install -Dm0755 {{bin-host-src}} {{flatpak-bin-host-dst}}
     install -Dm0644 {{desktop-src}} {{flatpak-desktop-dst}}
-    install -Dm0644 {{desktop-src-open}} {{flatpak-desktop-dst-open}}
     install -Dm0644 {{metainfo-src}} {{flatpak-metainfo-dst}}
     install -Dm0644 {{icons-src}} {{flatpak-icons-dst}}
 

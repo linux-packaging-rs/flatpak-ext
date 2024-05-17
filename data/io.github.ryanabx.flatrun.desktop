@@ -6,3 +6,5 @@ Icon=io.github.ryanabx.flatrun
 Categories=Flatpak;Utilities;
 NoDisplay=false
 GenericName=Application Launcher
+
+MimeType=application/vnd.flatpak;
