@@ -49,7 +49,7 @@ impl From<ashpd::Error> for FlatrunError {
 #[command(propagate_version = true)]
 /// Flatrun: Run flatpak applications without install!
 struct Cli {
-    #[arg(long)]
+    #[arg(short, long)]
     /// Run the graphical version of flatrun
     gui: bool,
     #[arg(short, long, conflicts_with = "from_download")]
