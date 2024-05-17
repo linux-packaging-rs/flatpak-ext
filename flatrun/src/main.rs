@@ -81,7 +81,7 @@ struct Cli {
         conflicts_with_all = ["download", "remote", "name"]
     )]
     /// Path of the .flatpak file to run (i.e. /home/1000/inkscape.flatpak)
-    path: Option<PathBuf>,
+    path: Option<String>,
 }
 
 #[derive(Args, Debug, Clone)]
@@ -106,7 +106,11 @@ async fn main() -> Result<(), FlatrunError> {
     let cli = Cli::parse();
     let ref_type = if !cli.download {
         if let Some(path) = cli.path {
-            RefType::Path(path)
+            let pth = Path::new(&path).canonicalize().unwrap();
+            if !pth.exists() {
+                return Err(FlatrunError::FileNotFound(pth));
+            }
+            RefType::Path(pth)
         } else {
             // use xdg-desktop-portal
             let files = SelectedFiles::open_file()

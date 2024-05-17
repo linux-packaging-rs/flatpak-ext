@@ -25,9 +25,8 @@ metainfo := APPID + '.metainfo.xml'
 metainfo-src := 'data' / metainfo
 flatpak-metainfo-dst := flatpak-base-dir / 'share' / 'metainfo' / metainfo
 
-icons := APPID + '.svg'
-icons-src := 'data' / icons
-flatpak-icons-dst := flatpak-base-dir / 'share' / 'icons' / 'hicolor' / 'scalable' / 'apps' / icons
+icons-src := 'data' / 'flatrun512.png'
+flatpak-icons-dst := flatpak-base-dir / 'share' / 'icons' / 'hicolor' / '512x512' / 'apps' / 'io.github.ryanabx.portapak.png'
 
 # Default recipe which runs `just build-release`
 default: build-release
