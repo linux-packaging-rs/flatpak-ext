@@ -106,7 +106,7 @@ async fn main() -> Result<(), FlatrunError> {
     let cli = Cli::parse();
     let ref_type = if !cli.download {
         if let Some(path) = cli.path {
-            let pth = Path::new(&path).canonicalize().unwrap();
+            let pth = Path::new(&path.strip_prefix("file://").unwrap_or(&path)).to_owned();
             if !pth.exists() {
                 return Err(FlatrunError::FileNotFound(pth));
             }
