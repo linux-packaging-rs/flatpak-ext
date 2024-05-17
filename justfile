@@ -26,7 +26,7 @@ metainfo-src := 'data' / metainfo
 flatpak-metainfo-dst := flatpak-base-dir / 'share' / 'metainfo' / metainfo
 
 icons-src := 'data' / 'flatrun512.png'
-flatpak-icons-dst := flatpak-base-dir / 'share' / 'icons' / 'hicolor' / '512x512' / 'apps' / 'io.github.ryanabx.portapak.png'
+flatpak-icons-dst := flatpak-base-dir / 'share' / 'icons' / 'hicolor' / '512x512' / 'apps' / 'io.github.ryanabx.flatrun.png'
 
 # Default recipe which runs `just build-release`
 default: build-release
