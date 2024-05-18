@@ -3,7 +3,7 @@ Name=Flatrun
 Exec=flatrun --gui %U
 Type=Application
 Icon=io.github.ryanabx.flatrun
-Categories=Flatpak;Utilities;
+Categories=Flatpak;Launcher;Utility;
 NoDisplay=false
 GenericName=Application Launcher
 

@@ -7,6 +7,7 @@ readme = "../README.md"
 homepage = "https://ryanabx.github.io/flatrun"
 repository = "https://github.com/ryanabx/flatrun"
 license = "MIT"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -20,3 +21,6 @@ libflatpak.workspace = true
 log.workspace = true
 slint = "1.6.0"
 tempfile = "3.10.1"
+
+[build-dependencies]
+slint-build = "1.6.0"

@@ -11,9 +11,10 @@ use libflatpak::{
     BundleRef, Installation, LaunchFlags, Remote,
 };
 
+use slint::{ComponentHandle, Weak};
 use tempfile::{tempdir_in, TempDir};
 
-use crate::{FlatrunError, RefType};
+use crate::{FlatrunError, MainWindow, RefType};
 
 #[derive(Debug)]
 pub struct FlatpakRepo {
@@ -78,11 +79,8 @@ impl Flatpak {
         repo: &FlatpakRepo,
         deps_to: DependencyInstall,
         offline: bool,
+        window_handle: Option<&Weak<MainWindow>>,
     ) -> Result<Self, FlatrunError> {
-        let app_install = libflatpak::Transaction::for_installation(
-            &repo.installation,
-            libflatpak::gio::Cancellable::current().as_ref(),
-        )?;
         // Install deps first
         let runtime_install = match deps_to {
             DependencyInstall::System => libflatpak::Transaction::for_installation(
@@ -99,8 +97,12 @@ impl Flatpak {
             )?,
         };
         runtime_install.add_default_dependency_sources();
-        // Set up transaction
+        let app_install = libflatpak::Transaction::for_installation(
+            &repo.installation,
+            libflatpak::gio::Cancellable::current().as_ref(),
+        )?;
         app_install.add_default_dependency_sources();
+        // Set up transaction
         let (app_name, runtime_name) = match ref_type {
             RefType::Path(path) => {
                 if !path.exists() {
@@ -158,26 +160,88 @@ impl Flatpak {
             }
         };
         // Set up connections to signals
-        runtime_install.connect_new_operation(|_, b, c| {
-            let prog_bar = ProgressBar::new(100);
-            prog_bar.set_style(ProgressStyle::default_spinner());
-            prog_bar.set_message(c.status().unwrap_or_default().to_string());
-            log::trace!("{}", b.metadata().unwrap().to_data());
-            c.connect_changed(move |a| {
-                prog_bar.set_position(a.progress() as u64);
-                prog_bar.set_message(a.status().unwrap_or_default().to_string());
-            });
-        });
-        app_install.connect_new_operation(|_, b, c| {
-            let prog_bar = ProgressBar::new(100);
-            prog_bar.set_style(ProgressStyle::default_spinner());
-            prog_bar.set_message(c.status().unwrap_or_default().to_string());
-            log::trace!("{}", b.metadata().unwrap().to_data());
-            c.connect_changed(move |a| {
-                prog_bar.set_position(a.progress() as u64);
-                prog_bar.set_message(a.status().unwrap_or_default().to_string());
-            });
-        });
+        match window_handle {
+            Some(handle) => {
+                let temp_handle = handle.clone();
+                runtime_install.connect_new_operation(move |_, transaction, progress| {
+                    let progress_msg = progress.status().unwrap_or_default().to_string();
+                    let current_action = format!(
+                        "{} {}",
+                        transaction.operation_type().to_str().unwrap(),
+                        transaction.get_ref().unwrap()
+                    );
+                    let temp_handle = temp_handle.clone();
+                    if let Err(e) = temp_handle.clone().upgrade_in_event_loop(move |window| {
+                        log::trace!("Setting run text: {:?}", progress_msg);
+                        window.set_current_action(current_action.into());
+                        window.set_run_text(progress_msg.into());
+                        window.set_run_progress(0.0);
+                    }) {
+                        log::warn!("Event loop error: {}", e);
+                    }
+                    progress.connect_changed(move |progress| {
+                        let progress_msg = progress.status().unwrap_or_default().to_string();
+                        let progress_value = progress.progress() as f32 / 100.0;
+                        if let Err(e) = temp_handle.clone().upgrade_in_event_loop(move |window| {
+                            log::trace!("Setting run text: {:?}", progress_msg);
+                            window.set_run_text(progress_msg.into());
+                            window.set_run_progress(progress_value.into());
+                        }) {
+                            log::warn!("Event loop error: {}", e);
+                        }
+                    });
+                });
+                let temp_handle = handle.clone();
+                app_install.connect_new_operation(move |_, transaction, progress| {
+                    let progress_msg = progress.status().unwrap_or_default().to_string();
+                    let current_action = format!(
+                        "{} {}",
+                        transaction.operation_type().to_str().unwrap(),
+                        transaction.get_ref().unwrap()
+                    );
+                    let temp_handle = temp_handle.clone();
+                    if let Err(e) = temp_handle.clone().upgrade_in_event_loop(move |window| {
+                        log::trace!("Setting run text: {:?}", progress_msg);
+                        window.set_current_action(current_action.into());
+                        window.set_run_text(progress_msg.into());
+                        window.set_run_progress(0.0);
+                    }) {
+                        log::warn!("Event loop error: {}", e);
+                    }
+                    progress.connect_changed(move |progress| {
+                        let progress_msg = progress.status().unwrap_or_default().to_string();
+                        let progress_value = progress.progress() as f32 / 100.0;
+                        if let Err(e) = temp_handle.clone().upgrade_in_event_loop(move |window| {
+                            log::trace!("Setting run text: {:?}", progress_msg);
+                            window.set_run_text(progress_msg.into());
+                            window.set_run_progress(progress_value.into());
+                        }) {
+                            log::warn!("Event loop error: {}", e);
+                        }
+                    });
+                });
+            }
+            None => {
+                runtime_install.connect_new_operation(move |_, _, progress| {
+                    let prog_bar = ProgressBar::new(100);
+                    prog_bar.set_style(ProgressStyle::default_spinner());
+                    prog_bar.set_message(progress.status().unwrap_or_default().to_string());
+                    progress.connect_changed(move |progress| {
+                        prog_bar.set_message(progress.status().unwrap_or_default().to_string());
+                        prog_bar.set_position(progress.progress() as u64);
+                    });
+                });
+                app_install.connect_new_operation(move |_, _, progress| {
+                    let prog_bar = ProgressBar::new(100);
+                    prog_bar.set_style(ProgressStyle::default_spinner());
+                    prog_bar.set_message(progress.status().unwrap_or_default().to_string());
+                    progress.connect_changed(move |progress| {
+                        prog_bar.set_message(progress.status().unwrap_or_default().to_string());
+                        prog_bar.set_position(progress.progress() as u64);
+                    });
+                });
+            }
+        };
         // Run transaction
         if !offline {
             println!(
@@ -210,6 +274,15 @@ impl Flatpak {
                 )
             })
             .collect::<Vec<_>>();
+        if let Some(handle) = window_handle {
+            handle.clone()
+                .upgrade_in_event_loop(|window| {
+                    // https://github.com/slint-ui/slint/issues/4225
+                    log::warn!("window currently won't hide due to a bug... (https://github.com/slint-ui/slint/issues/4225)");
+                    window.window().hide().unwrap();
+                })
+                .unwrap();
+        }
         Ok(Self {
             app_ref: app_ref.into(),
             app_id: app_id.into(),
