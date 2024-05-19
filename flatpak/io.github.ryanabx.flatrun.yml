@@ -17,6 +17,10 @@ finish-args:
   - "--share=network"
 # Necessary for running the flatpak at the end, runs through flatrun-host
   - "--talk-name=org.freedesktop.Flatpak"
+# For GUI
+  - "--device=dri"
+  - "--socket=wayland"
+  - "--socket=fallback-x11"
 build-options:
   append-path: "/usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/llvm16/bin"
   build-args:
