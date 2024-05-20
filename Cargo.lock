@@ -1612,7 +1612,7 @@ dependencies = [
 [[package]]
 name = "flatpak-unsandbox"
 version = "0.1.0"
-source = "git+https://github.com/ryanabx/flatpak-unsandbox#89fa273f1a9df430402043ebd48fddd7631a0355"
+source = "git+https://github.com/ryanabx/flatpak-unsandbox#38c4585d982130b983a104a24981b6896329d5ed"
 dependencies = [
  "gio",
  "glib",
