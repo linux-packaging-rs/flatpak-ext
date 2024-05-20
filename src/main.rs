@@ -112,11 +112,12 @@ slint::include_modules!();
 
 #[async_std::main]
 async fn main() -> Result<(), FlatrunError> {
+    env_logger::init();
+    let cli = Cli::parse();
+    log::debug!("Running unsandbox");
     if flatpak_unsandbox::unsandbox(None)? {
         return Ok(());
     }
-    env_logger::init();
-    let cli = Cli::parse();
     if cli.gui {
         if let Ok(ref_type) = get_file_from_chooser().await {
             let main_window = MainWindow::new().unwrap();
