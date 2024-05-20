@@ -9,19 +9,19 @@ separate-locales: false
 command: flatrun
 finish-args:
   - "--share=ipc"
-# Access to system/user flatpak repositores is necessary for
-# libflatpak to run.
-  - "--filesystem=xdg-data/flatpak"
-  - "--filesystem=/var/lib/flatpak"
-# Necessary for downloading runtimes if they aren't installed
-  - "--share=network"
+# # Access to system/user flatpak repositores is necessary for
+# # libflatpak to run.
+#   - "--filesystem=xdg-data/flatpak"
+#   - "--filesystem=/var/lib/flatpak"
+# # Necessary for downloading runtimes if they aren't installed
+#   - "--share=network"
 # Necessary for running the flatpak at the end and installing not installed
 # runtimes, runs through flatrun-host
   - "--talk-name=org.freedesktop.Flatpak"
-# For GUI
-  - "--device=dri"
-  - "--socket=wayland"
-  - "--socket=fallback-x11"
+# # For GUI
+#   - "--device=dri"
+#   - "--socket=wayland"
+#   - "--socket=fallback-x11"
 build-options:
   append-path: "/usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/llvm16/bin"
   build-args:

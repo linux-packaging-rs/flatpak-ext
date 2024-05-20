@@ -48,7 +48,7 @@ pub struct Flatpak {
 }
 
 impl FlatpakRepo {
-    pub fn new(offline: bool) -> Result<Self, FlatrunError> {
+    pub fn new() -> Result<Self, FlatrunError> {
         let base_path = env::var("XDG_CACHE_HOME")
             .map_or(Path::new(&env::var("HOME").unwrap()).join(".cache"), |x| {
                 Path::new(&x).to_path_buf()
@@ -61,14 +61,12 @@ impl FlatpakRepo {
             true,
             libflatpak::gio::Cancellable::current().as_ref(),
         )?;
-        if !offline {
-            // Add flathub
-            installation.add_remote(
-                &flathub_remote()?,
-                false,
-                libflatpak::gio::Cancellable::current().as_ref(),
-            )?;
-        }
+        // Add flathub
+        installation.add_remote(
+            &flathub_remote()?,
+            false,
+            libflatpak::gio::Cancellable::current().as_ref(),
+        )?;
         Ok(Self { repo, installation })
     }
 }
@@ -78,7 +76,6 @@ impl Flatpak {
         ref_type: RefType,
         repo: &FlatpakRepo,
         deps_to: DependencyInstall,
-        offline: bool,
         window_handle: Option<&Weak<MainWindow>>,
     ) -> Result<Self, FlatrunError> {
         // Install deps first
@@ -243,14 +240,12 @@ impl Flatpak {
             }
         };
         // Run transaction
-        if !offline {
-            println!(
-                "Installing runtime {:?} to {:?} (if it doesn't exist)",
-                runtime_name, deps_to
-            );
-            if let Err(e) = runtime_install.run(libflatpak::gio::Cancellable::current().as_ref()) {
-                log::warn!("{e}");
-            }
+        println!(
+            "Installing runtime {:?} to {:?} (if it doesn't exist)",
+            runtime_name, deps_to
+        );
+        if let Err(e) = runtime_install.run(libflatpak::gio::Cancellable::current().as_ref()) {
+            log::warn!("{e}");
         }
         println!("Installing application {:?}", app_name);
         app_install.run(libflatpak::gio::Cancellable::current().as_ref())?;

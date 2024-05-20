@@ -9,6 +9,7 @@ use ashpd::desktop::file_chooser::{FileFilter, SelectedFiles};
 use async_std::task::spawn;
 use clap::{arg, Args, Parser};
 use flatpak::DependencyInstall;
+use flatpak_unsandbox::UnsandboxError;
 use slint::Weak;
 
 use crate::flatpak::{Flatpak, FlatpakRepo};
@@ -20,6 +21,7 @@ pub enum FlatrunError {
     FileNotFound(PathBuf),
     GLib(libflatpak::glib::Error),
     Ashpd(ashpd::Error),
+    Unsandbox(UnsandboxError),
 }
 
 impl From<std::io::Error> for FlatrunError {
@@ -46,6 +48,12 @@ impl From<ashpd::Error> for FlatrunError {
     }
 }
 
+impl From<UnsandboxError> for FlatrunError {
+    fn from(value: UnsandboxError) -> Self {
+        Self::Unsandbox(value)
+    }
+}
+
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 #[command(propagate_version = true)]
@@ -55,8 +63,6 @@ struct Cli {
     /// Run the graphical version of flatrun
     gui: bool,
     #[arg(short, long, conflicts_with = "from_download")]
-    /// Run the application completely offline
-    offline: bool,
     #[arg(short, long, conflicts_with = "path", requires_all = ["remote", "name"])]
     /// Download a flatpak from a named remote
     download: bool,
@@ -106,6 +112,9 @@ slint::include_modules!();
 
 #[async_std::main]
 async fn main() -> Result<(), FlatrunError> {
+    if flatpak_unsandbox::unsandbox(None)? {
+        return Ok(());
+    }
     env_logger::init();
     let cli = Cli::parse();
     if cli.gui {
@@ -115,7 +124,6 @@ async fn main() -> Result<(), FlatrunError> {
             let thread_handle = spawn(async move {
                 if let Err(e) = run(
                     ref_type.clone(),
-                    false,
                     DependencyInstall::default(),
                     Some(&ui_handle),
                 ) {
@@ -146,12 +154,7 @@ async fn main() -> Result<(), FlatrunError> {
                 ));
             }
         };
-        match run(
-            ref_type.clone(),
-            cli.offline,
-            DependencyInstall::default(),
-            None,
-        ) {
+        match run(ref_type.clone(), DependencyInstall::default(), None) {
             Ok(()) => Ok(()),
             Err(e) => {
                 log::error!("flatrun: {:?}", e);
@@ -163,13 +166,12 @@ async fn main() -> Result<(), FlatrunError> {
 
 fn run(
     app: RefType,
-    offline: bool,
     dependencies: DependencyInstall,
     window_handle: Option<&Weak<MainWindow>>,
 ) -> Result<(), FlatrunError> {
     log::info!("requested flatpak: {:?}", app);
-    let repo = FlatpakRepo::new(offline)?;
-    let flatpak = Flatpak::new(app, &repo, dependencies, offline, window_handle)?;
+    let repo = FlatpakRepo::new()?;
+    let flatpak = Flatpak::new(app, &repo, dependencies, window_handle)?;
     flatpak.run(&repo)?;
     Ok(())
 }

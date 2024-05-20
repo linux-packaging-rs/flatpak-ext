@@ -14,9 +14,6 @@ export INSTALL_DIR := base-dir / 'share'
 bin-src := 'target' / 'release' / name
 flatpak-bin-dst := flatpak-base-dir / 'bin' / name
 
-bin-host-src := 'target' / 'release' / host-name
-flatpak-bin-host-dst := flatpak-base-dir / 'libexec' / host-name
-
 desktop := APPID + '.desktop'
 desktop-src := 'data' / desktop
 flatpak-desktop-dst := flatpak-base-dir / 'share' / 'applications' / desktop
@@ -70,7 +67,6 @@ run *args:
 # Installs files
 flatpak:
     install -Dm0755 {{bin-src}} {{flatpak-bin-dst}}
-    install -Dm0755 {{bin-host-src}} {{flatpak-bin-host-dst}}
     install -Dm0644 {{desktop-src}} {{flatpak-desktop-dst}}
     install -Dm0644 {{metainfo-src}} {{flatpak-metainfo-dst}}
     install -Dm0644 {{icons-src}} {{flatpak-icons-dst}}
