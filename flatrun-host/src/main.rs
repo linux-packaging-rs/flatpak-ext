@@ -42,7 +42,7 @@ fn main() -> Result<(), FlatrunHostError> {
         } => match run(repo, appid, branch) {
             Ok(()) => Ok(()),
             Err(e) => {
-                log::error!("{:?}", e);
+                log::error!("flatrun-host: {:?}", e);
                 Err(e)
             }
         },

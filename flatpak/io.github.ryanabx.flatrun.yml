@@ -15,7 +15,8 @@ finish-args:
   - "--filesystem=/var/lib/flatpak"
 # Necessary for downloading runtimes if they aren't installed
   - "--share=network"
-# Necessary for running the flatpak at the end, runs through flatrun-host
+# Necessary for running the flatpak at the end and installing not installed
+# runtimes, runs through flatrun-host
   - "--talk-name=org.freedesktop.Flatpak"
 # For GUI
   - "--device=dri"

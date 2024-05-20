@@ -154,7 +154,7 @@ async fn main() -> Result<(), FlatrunError> {
         ) {
             Ok(()) => Ok(()),
             Err(e) => {
-                log::error!("{:?}", e);
+                log::error!("flatrun: {:?}", e);
                 Ok(())
             }
         }
