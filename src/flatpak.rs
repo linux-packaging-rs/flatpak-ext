@@ -1,8 +1,7 @@
-use std::{env, path::Path, process::Command, thread::sleep, time::Duration};
+use std::{env, path::Path, thread::sleep, time::Duration};
 
 use indicatif::{ProgressBar, ProgressStyle};
 use libflatpak::{
-    gio::{prelude::FileExt, File},
     glib::{KeyFile, KeyFileFlags},
     prelude::{
         BundleRefExt, InstallationExt, InstallationExtManual, InstalledRefExt, InstanceExt, RefExt,
