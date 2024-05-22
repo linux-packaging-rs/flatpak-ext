@@ -1565,7 +1565,7 @@ dependencies = [
 [[package]]
 name = "flatpak-unsandbox"
 version = "0.1.0"
-source = "git+https://github.com/ryanabx/flatpak-unsandbox?branch=changes/forward-dirs#b5c0667c86d1b5cd3eaa4c2d940fcc789b0ad471"
+source = "git+https://github.com/ryanabx/flatpak-unsandbox?branch=changes/forward-dirs#67641ad477b4325a7775354de6a94789a06463d3"
 dependencies = [
  "gio",
  "glib",

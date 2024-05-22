@@ -196,7 +196,7 @@ async fn run_bundle(bundle_path: PathBuf, gui: bool) -> Result<(), FlatrunError>
             ProgramArg::Value("install-run-bundle".into()), // command
             ProgramArg::Path {
                 path: temp_repo.path().to_path_buf(),
-                in_sandbox: true,
+                in_sandbox: false, // '/tmp' is not in the sandbox
             }, // repo
             ProgramArg::Path {
                 path: deps_repo,
