@@ -1,0 +1,14 @@
+[package]
+name = "flatrun-agent"
+version = "0.1.0"
+edition = "2021"
+authors = ["Ryan Brue <ryanbrue@gmail.com>"]
+readme = "../README.md"
+homepage = "https://ryanabx.github.io/flatrun"
+repository = "https://github.com/ryanabx/flatrun"
+license = "MIT"
+
+[dependencies]
+libflatpak.workspace = true
+clap.workspace = true
+log.workspace = true

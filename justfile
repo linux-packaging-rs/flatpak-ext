@@ -1,5 +1,5 @@
 name := 'flatrun'
-host-name := 'flatrun-host'
+agent-name := 'flatrun-agent'
 export APPID := 'io.github.ryanabx.flatrun'
 
 rootdir := ''
@@ -14,9 +14,16 @@ export INSTALL_DIR := base-dir / 'share'
 bin-src := 'target' / 'release' / name
 flatpak-bin-dst := flatpak-base-dir / 'bin' / name
 
+agent-bin-src := 'target' / 'release' / agent-name
+flatpak-agent-bin-dst := flatpak-base-dir / 'libexec' / agent-name
+
 desktop := APPID + '.desktop'
 desktop-src := 'data' / desktop
 flatpak-desktop-dst := flatpak-base-dir / 'share' / 'applications' / desktop
+
+bundle-desktop := APPID + '-bundle.desktop'
+bundle-desktop-src := 'data' / bundle-desktop
+flatpak-bundle-desktop-dst := flatpak-base-dir / 'share' / 'applications' / bundle-desktop
 
 metainfo := APPID + '.metainfo.xml'
 metainfo-src := 'data' / metainfo
@@ -67,7 +74,9 @@ run *args:
 # Installs files
 flatpak:
     install -Dm0755 {{bin-src}} {{flatpak-bin-dst}}
+    install -Dm0755 {{agent-bin-src}} {{flatpak-agent-bin-dst}}
     install -Dm0644 {{desktop-src}} {{flatpak-desktop-dst}}
+    install -Dm0644 {{bundle-desktop-src}} {{flatpak-bundle-desktop-dst}}
     install -Dm0644 {{metainfo-src}} {{flatpak-metainfo-dst}}
     install -Dm0644 {{icons-src}} {{flatpak-icons-dst}}
 

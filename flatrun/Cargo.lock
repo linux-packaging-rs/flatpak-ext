@@ -1565,7 +1565,8 @@ dependencies = [
 [[package]]
 name = "flatpak-unsandbox"
 version = "0.1.0"
-source = "git+https://github.com/ryanabx/flatpak-unsandbox?branch=changes/forward-dirs#b5c0667c86d1b5cd3eaa4c2d940fcc789b0ad471"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "83c07802b9ff8a2a7a73e3485521cc3aeeec7db91a4903f370a9a2b29c6683ea"
 dependencies = [
  "gio",
  "glib",
@@ -1587,15 +1588,6 @@ dependencies = [
  "log",
  "slint",
  "tempfile",
-]
-
-[[package]]
-name = "flatrun-agent"
-version = "0.1.0"
-dependencies = [
- "clap",
- "libflatpak",
- "log",
 ]
 
 [[package]]
