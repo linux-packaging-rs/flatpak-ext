@@ -6,7 +6,7 @@ pub struct ProgressInfo {
     message: String,
     progress: f32,
     app: RunApp,
-    temp_repo: TempDir,
+    temp_repo: PathBuf,
     deps_repo: PathBuf,
 }
 
@@ -27,27 +27,20 @@ use std::path::PathBuf;
 
 use async_std::task::spawn;
 use iced::{
-    executor,
+    command, executor,
     futures::SinkExt,
     subscription,
     widget::{column, text},
-    window, Application, Command, Element, Subscription, Theme,
+    window, Application, Command, Element, Theme,
 };
-use tempfile::TempDir;
 
 impl Application for ProgressInfo {
     type Executor = executor::Default;
-    type Flags = RunApp;
+    type Flags = (RunApp, PathBuf, PathBuf);
     type Message = Message;
     type Theme = Theme;
 
     fn new(flags: Self::Flags) -> (ProgressInfo, Command<Self::Message>) {
-        let (temp_repo, deps_repo) = crate::get_repos().unwrap();
-        log::info!(
-            "temp_repo: {:?}, deps_repo: {:?}",
-            temp_repo.path(),
-            deps_repo
-        );
         (
             ProgressInfo {
                 repo: "".into(),
@@ -55,9 +48,9 @@ impl Application for ProgressInfo {
                 app_ref: "".into(),
                 message: "".into(),
                 progress: 0.0,
-                app: flags,
-                temp_repo,
-                deps_repo,
+                app: flags.0,
+                temp_repo: flags.1,
+                deps_repo: flags.2,
             },
             Command::none(),
         )
@@ -96,6 +89,7 @@ impl Application for ProgressInfo {
             }
             Message::Done => {
                 log::info!("CLOSE!");
+                let _ = std::fs::remove_dir(&self.temp_repo);
                 window::close::<Message>(window::Id::MAIN)
             }
         }
@@ -103,10 +97,7 @@ impl Application for ProgressInfo {
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
         let app = self.app.clone();
-        let (temp_repo, deps_repo) = (
-            self.temp_repo.path().to_path_buf().clone(),
-            self.deps_repo.clone(),
-        );
+        let (temp_repo, deps_repo) = (self.temp_repo.clone(), self.deps_repo.clone());
         subscription::channel(
             std::any::TypeId::of::<Message>(),
             50,

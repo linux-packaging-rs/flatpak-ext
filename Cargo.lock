@@ -1208,7 +1208,7 @@ dependencies = [
  "indicatif",
  "libflatpak",
  "log",
- "tempfile",
+ "rand",
 ]
 
 [[package]]

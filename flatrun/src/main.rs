@@ -16,7 +16,7 @@ use iced::{
     },
     Application, Settings,
 };
-use tempfile::TempDir;
+use rand::{distributions::Alphanumeric, Rng};
 
 use crate::gui::ProgressInfo;
 
@@ -101,11 +101,7 @@ async fn main() -> Result<(), FlatrunError> {
         }
         Some(FlatrunCommand::Download { appid }) => {
             let (temp_repo, deps_repo) = get_repos()?;
-            log::info!(
-                "temp_repo: {:?}, deps_repo: {:?}",
-                temp_repo.path(),
-                deps_repo
-            );
+            log::info!("temp_repo: {:?}, deps_repo: {:?}", temp_repo, deps_repo);
             Ok(())
         }
         None => {
@@ -124,7 +120,7 @@ fn path_from_uri(path: String) -> Result<PathBuf, FlatrunError> {
     Ok(pth)
 }
 
-fn get_repos() -> Result<(TempDir, PathBuf), FlatrunError> {
+fn get_repos() -> Result<(PathBuf, PathBuf), FlatrunError> {
     let temp_repo_parent = Path::new(
         &env::var("XDG_STATE_HOME")
             .unwrap_or(format!("{}/.cache/flatrun/", env::var("HOME").unwrap())),
@@ -137,7 +133,12 @@ fn get_repos() -> Result<(TempDir, PathBuf), FlatrunError> {
     .join("deps");
     let _ = fs::create_dir_all(&temp_repo_parent);
     let _ = fs::create_dir_all(&deps_repo);
-    let temp_repo = TempDir::new_in(&temp_repo_parent)?;
+    let foldername: String = rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(7)
+        .map(char::from)
+        .collect();
+    let temp_repo = temp_repo_parent.join(format!(".tmp{}", foldername));
     Ok((temp_repo, deps_repo))
 }
 
@@ -165,21 +166,24 @@ async fn get_file_from_chooser() -> Result<PathBuf, FlatrunError> {
 }
 
 pub async fn run_bundle(bundle_path: PathBuf, gui: bool) -> Result<(), FlatrunError> {
+    let (temp_repo, deps_repo) = get_repos()?;
     if gui {
-        let mut settings = Settings::with_flags(gui::RunApp::Bundle(bundle_path));
+        let mut settings = Settings::with_flags((
+            gui::RunApp::Bundle(bundle_path),
+            temp_repo.clone(),
+            deps_repo,
+        ));
         settings.id = Some("io.github.ryanabx.flatrun".into());
         settings.window.platform_specific.application_id = "io.github.ryanabx.flatrun".into();
+        settings.window.exit_on_close_request = false;
         ProgressInfo::run(settings)?;
+        let _ = std::fs::remove_dir(&temp_repo);
         Ok(())
     } else {
-        let (temp_repo, deps_repo) = get_repos()?;
-        log::info!(
-            "temp_repo: {:?}, deps_repo: {:?}",
-            temp_repo.path(),
-            deps_repo
-        );
-        run_bundle_inner(temp_repo.path(), &deps_repo, &bundle_path, &mut None).await?;
-        log::info!("Cleaning up temp repo: {:?}", temp_repo.path());
+        log::info!("temp_repo: {:?}, deps_repo: {:?}", temp_repo, deps_repo);
+        run_bundle_inner(&temp_repo, &deps_repo, &bundle_path, &mut None).await?;
+        log::info!("Cleaning up temp repo: {:?}", temp_repo);
+        let _ = std::fs::remove_dir(&temp_repo);
         Ok(())
     }
 }
@@ -263,5 +267,12 @@ pub async fn run_bundle_inner(
             }
         }
     }
+    if let Some(s) = sender {
+        log::info!("Sending hide command!");
+        if let Err(e) = s.send(gui::Message::Done).await {
+            log::error!("{:?}", e);
+        }
+    }
+    let _ = std::fs::remove_dir(&temp_repo);
     Ok(())
 }
