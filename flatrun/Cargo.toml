@@ -14,10 +14,10 @@ license = "MIT"
 ashpd = "0.8.1"
 async-std = { version = "1.12.0", features = ["attributes"] }
 indicatif = "0.17.8"
-slint = "1.6.0"
 tempfile = "3.10.1"
 clap.workspace = true
 env_logger.workspace = true
 libflatpak.workspace = true
 log.workspace = true
 flatpak-unsandbox = {git = "https://github.com/ryanabx/flatpak-unsandbox", branch="changes/forward-dirs"}
+iced = "0.12.1"

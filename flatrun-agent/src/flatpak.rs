@@ -196,7 +196,7 @@ const DATA: [u8; 2844] = [
 
 pub fn install_bundle(
     installation: PathBuf,
-    deps_installation: PathBuf,
+    _deps_installation: PathBuf,
     path: PathBuf,
 ) -> Result<(), FlatrunAgentError> {
     let bundle_install = get_repo(installation, true)?;
@@ -305,7 +305,8 @@ pub fn install_bundle(
             .map(|x| { x.format_ref().unwrap() })
             .collect::<Vec<_>>()
     );
-
+    // Signal to gui to hide
+    println!("RUNNING_APPLICATION");
     // Run bundle
     let inst = bundle_install.launch_full(
         LaunchFlags::NONE,
