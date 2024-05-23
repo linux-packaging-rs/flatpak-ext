@@ -172,82 +172,96 @@ pub async fn run_bundle(bundle_path: PathBuf, gui: bool) -> Result<(), FlatrunEr
         ProgressInfo::run(settings)?;
         Ok(())
     } else {
-        run_bundle_inner(bundle_path, &mut None).await?;
+        let (temp_repo, deps_repo) = get_repos()?;
+        log::info!(
+            "temp_repo: {:?}, deps_repo: {:?}",
+            temp_repo.path(),
+            deps_repo
+        );
+        run_bundle_inner(temp_repo.path(), &deps_repo, &bundle_path, &mut None).await?;
+        log::info!("Cleaning up temp repo: {:?}", temp_repo.path());
         Ok(())
     }
 }
 
 pub async fn run_bundle_inner(
-    bundle_path: PathBuf,
+    temp_repo: &Path,
+    deps_repo: &Path,
+    bundle_path: &Path,
     sender: &mut Option<&mut Sender<gui::Message>>,
 ) -> Result<(), FlatrunError> {
-    let (temp_repo, deps_repo) = get_repos()?;
-    log::info!(
-        "temp_repo: {:?}, deps_repo: {:?}",
-        temp_repo.path(),
-        deps_repo
-    );
     println!("Unsandboxing...");
     if let Some(mut cmd) = flatpak_unsandbox::unsandbox(Some(Program::new(
         "/app/libexec/flatrun-agent",
         Some(vec![
             ProgramArg::Value("install-run-bundle".into()), // command
             ProgramArg::Path {
-                path: temp_repo.path().to_path_buf(),
+                path: temp_repo.to_path_buf(),
                 in_sandbox: false, // '/tmp' is not in the sandbox
             }, // repo
             ProgramArg::Path {
-                path: deps_repo,
+                path: deps_repo.to_path_buf(),
                 in_sandbox: true,
             }, // dependency repo
             ProgramArg::Path {
-                path: bundle_path,
+                path: bundle_path.to_path_buf(),
                 in_sandbox: false,
             }, // bundle
         ]),
         Some(vec![("RUST_LOG".into(), "DEBUG".into())]), // logging
     )))? {
-        println!("Unsandboxin2g...");
         let mut child = cmd.stdout(Stdio::piped()).spawn().unwrap();
         let stdout = child.stdout.take().unwrap();
         // Stream output.
         let lines = BufReader::new(stdout).lines();
-        for line in lines {
-            let l = line.unwrap();
-            let update_metadata = l.split("::").map(|x| x.to_string()).collect::<Vec<_>>();
-            println!("GOT LINE: {:?}", update_metadata);
-            if update_metadata.len() != 5 {
-                if l.contains("RUNNING_APPLICATION") {
-                    if let Some(s) = sender {
-                        log::info!("Sending hide command!");
-                        s.send(gui::Message::Hide).await?;
+        'buffered_reader: {
+            for line in lines {
+                let l = match line {
+                    Ok(a) => a,
+                    Err(_) => break 'buffered_reader,
+                };
+                let update_metadata = l.split("::").map(|x| x.to_string()).collect::<Vec<_>>();
+                println!("GOT LINE: {:?}", update_metadata);
+                if update_metadata.len() != 5 {
+                    if l.contains("RUNNING_APPLICATION") {
+                        if let Some(s) = sender {
+                            log::info!("Sending hide command!");
+                            if let Err(e) = s.send(gui::Message::Hide).await {
+                                log::error!("{:?}", e);
+                                break 'buffered_reader;
+                            }
+                        }
+                    }
+                    continue;
+                }
+                let repo = update_metadata.get(0).unwrap().clone();
+                let action = update_metadata.get(1).unwrap().clone();
+                let app_ref = update_metadata.get(2).unwrap().clone();
+                let message = update_metadata.get(3).unwrap().clone();
+                let progress = update_metadata
+                    .get(4)
+                    .unwrap()
+                    .clone()
+                    .parse::<i32>()
+                    .unwrap();
+                if let Some(s) = sender {
+                    log::info!("Sending the info!");
+                    if let Err(e) = s
+                        .send(gui::Message::UpdateProgress((
+                            repo,
+                            action,
+                            app_ref,
+                            message,
+                            progress as f32 / 100.0,
+                        )))
+                        .await
+                    {
+                        log::error!("{:?}", e);
+                        break 'buffered_reader;
                     }
                 }
-                continue;
-            }
-            let repo = update_metadata.get(0).unwrap().clone();
-            let action = update_metadata.get(1).unwrap().clone();
-            let app_ref = update_metadata.get(2).unwrap().clone();
-            let message = update_metadata.get(3).unwrap().clone();
-            let progress = update_metadata
-                .get(4)
-                .unwrap()
-                .clone()
-                .parse::<i32>()
-                .unwrap();
-            if let Some(s) = sender {
-                log::info!("Sending the info!");
-                s.send(gui::Message::UpdateProgress((
-                    repo,
-                    action,
-                    app_ref,
-                    message,
-                    progress as f32 / 100.0,
-                )))
-                .await?;
             }
         }
     }
-    log::info!("Cleaning up temp repo: {:?}", temp_repo.path());
     Ok(())
 }

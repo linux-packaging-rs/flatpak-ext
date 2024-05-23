@@ -6,6 +6,8 @@ pub struct ProgressInfo {
     message: String,
     progress: f32,
     app: RunApp,
+    temp_repo: TempDir,
+    deps_repo: PathBuf,
 }
 
 #[derive(Clone, Debug)]
@@ -31,6 +33,7 @@ use iced::{
     widget::{column, text},
     window, Application, Command, Element, Subscription, Theme,
 };
+use tempfile::TempDir;
 
 impl Application for ProgressInfo {
     type Executor = executor::Default;
@@ -39,6 +42,12 @@ impl Application for ProgressInfo {
     type Theme = Theme;
 
     fn new(flags: Self::Flags) -> (ProgressInfo, Command<Self::Message>) {
+        let (temp_repo, deps_repo) = crate::get_repos().unwrap();
+        log::info!(
+            "temp_repo: {:?}, deps_repo: {:?}",
+            temp_repo.path(),
+            deps_repo
+        );
         (
             ProgressInfo {
                 repo: "".into(),
@@ -47,6 +56,8 @@ impl Application for ProgressInfo {
                 message: "".into(),
                 progress: 0.0,
                 app: flags,
+                temp_repo,
+                deps_repo,
             },
             Command::none(),
         )
@@ -92,6 +103,10 @@ impl Application for ProgressInfo {
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
         let app = self.app.clone();
+        let (temp_repo, deps_repo) = (
+            self.temp_repo.path().to_path_buf().clone(),
+            self.deps_repo.clone(),
+        );
         subscription::channel(
             std::any::TypeId::of::<Message>(),
             50,
@@ -99,9 +114,14 @@ impl Application for ProgressInfo {
                 match app {
                     RunApp::Bundle(path) => {
                         spawn(async move {
-                            crate::run_bundle_inner(path, &mut Some(&mut output))
-                                .await
-                                .unwrap();
+                            crate::run_bundle_inner(
+                                &temp_repo,
+                                &deps_repo,
+                                &path,
+                                &mut Some(&mut output),
+                            )
+                            .await
+                            .unwrap();
                             output.send(Message::Done).await.unwrap();
                         });
                     }
