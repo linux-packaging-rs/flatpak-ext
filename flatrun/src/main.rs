@@ -67,6 +67,9 @@ struct Cli {
     /// Run the graphical version of flatrun
     #[arg(short, long)]
     gui: bool,
+    /// Clean out the temp repo directory
+    #[arg(short, long)]
+    clean: bool,
     /// Optional url of remote to download from (defaults to Flathub)
     #[arg(short, long)]
     remote: Option<String>,
@@ -94,6 +97,9 @@ enum FlatrunCommand {
 async fn main() -> Result<(), FlatrunError> {
     env_logger::init();
     let cli = Cli::parse();
+    if cli.clean {
+        clean_repos();
+    }
     match cli.command {
         Some(FlatrunCommand::Bundle { bundle_path }) => {
             run_bundle(path_from_uri(bundle_path)?, cli.gui).await?;
@@ -140,6 +146,17 @@ fn get_repos() -> Result<(PathBuf, PathBuf), FlatrunError> {
         .collect();
     let temp_repo = temp_repo_parent.join(format!(".tmp{}", foldername));
     Ok((temp_repo, deps_repo))
+}
+
+fn clean_repos() {
+    let temp_repo_parent = Path::new(
+        &env::var("XDG_STATE_HOME")
+            .unwrap_or(format!("{}/.cache/flatrun/", env::var("HOME").unwrap())),
+    )
+    .to_owned();
+    let _ = std::fs::remove_dir_all(&temp_repo_parent);
+    let _ = std::fs::create_dir(&temp_repo_parent);
+    log::info!("Cleaned repos!")
 }
 
 async fn get_file_from_chooser() -> Result<PathBuf, FlatrunError> {
