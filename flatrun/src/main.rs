@@ -152,7 +152,7 @@ fn path_from_uri(path: String) -> Result<PathBuf, FlatrunError> {
 }
 
 fn get_repos() -> Result<(TempDir, PathBuf), FlatrunError> {
-    let temp_repo = TempDir::new()?;
+    let temp_repo = TempDir::new_in(env::var("XDG_STATE_HOME").unwrap())?;
     let deps_repo = Path::new(&env::var("XDG_DATA_HOME").unwrap_or(format!(
         "{}/.local/share/flatrun",
         env::var("HOME").unwrap()
