@@ -1,4 +1,9 @@
-use std::{env, io, path::PathBuf, thread::sleep, time::Duration};
+use std::{
+    env, io,
+    path::PathBuf,
+    thread::{self, sleep},
+    time::Duration,
+};
 
 use libflatpak::{
     gio::prelude::FileExt,
@@ -8,6 +13,11 @@ use libflatpak::{
         TransactionExt,
     },
     BundleRef, Installation, LaunchFlags, Remote,
+};
+use rustix::{process::WaitOptions, thread::Pid};
+use signal_hook::{
+    consts::{SIGINT, SIGKILL, SIGTERM},
+    iterator::Signals,
 };
 
 use crate::FlatrunAgentError;
@@ -308,28 +318,32 @@ pub fn install_bundle(
     // Signal to gui to hide
     println!("RUNNING_APPLICATION");
     // Run bundle
-    let inst = bundle_install.launch_full(
-        LaunchFlags::NONE,
-        &app_name,
-        None,
-        Some(&branch),
-        None,
-        libflatpak::gio::Cancellable::current().as_ref(),
-    );
-    match inst {
-        Ok(i) => {
-            while i.is_running() {
-                sleep(Duration::from_millis(1000));
-            }
-            log::info!("Instance is no longer running! Exiting...");
-            Ok(())
+    let inst = bundle_install
+        .launch_full(
+            LaunchFlags::DO_NOT_REAP,
+            &app_name,
+            None,
+            Some(&branch),
+            None,
+            libflatpak::gio::Cancellable::current().as_ref(),
+        )
+        .unwrap();
+
+    let pid = Pid::from_raw(inst.pid()).unwrap();
+    let mut signals = Signals::new(&[SIGINT, SIGTERM, SIGKILL])?;
+
+    thread::spawn(move || {
+        for sig in signals.forever() {
+            log::info!("Received signal {:?}", sig);
+            let _ =
+                rustix::process::kill_process(pid, rustix::process::Signal::from_raw(sig).unwrap());
         }
-        Err(e) => {
-            log::error!("{}", e);
-            eprintln!("{:?}", e);
-            Ok(())
-        }
-    }
+    });
+
+    while !rustix::process::waitpid(Some(pid), WaitOptions::empty())
+        .is_ok_and(|x| x.is_some_and(|y| y.exited() || y.signaled()))
+    {}
+    Ok(())
 }
 
 fn system_repo() -> Result<Installation, FlatrunAgentError> {

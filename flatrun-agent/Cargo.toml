@@ -12,3 +12,5 @@ license = "MIT"
 libflatpak = "0.5.0"
 clap.workspace = true
 log.workspace = true
+rustix = "0.38.34"
+signal-hook = "0.3.17"
