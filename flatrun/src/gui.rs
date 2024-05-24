@@ -1,3 +1,14 @@
+use std::path::PathBuf;
+
+use async_std::task::spawn;
+use iced::{
+    executor,
+    futures::SinkExt,
+    subscription,
+    widget::{button, column, row, text},
+    window, Alignment, Application, Command, Element, Length, Subscription, Theme,
+};
+
 #[derive(Debug)]
 pub struct ProgressInfo {
     repo: String,
@@ -29,17 +40,6 @@ pub enum Message {
     Finished(rustix::process::Pid),
     Close,
 }
-
-use std::{future::IntoFuture, path::PathBuf, process::Child};
-
-use async_std::task::spawn;
-use iced::{
-    command, executor,
-    futures::SinkExt,
-    subscription,
-    widget::{button, column, row, text},
-    window, Alignment, Application, Command, Element, Length, Subscription, Theme,
-};
 
 impl Application for ProgressInfo {
     type Executor = executor::Default;

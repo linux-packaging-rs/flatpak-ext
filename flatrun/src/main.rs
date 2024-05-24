@@ -3,7 +3,7 @@ use std::{
     env, fs,
     io::{self, BufRead, BufReader},
     path::{Path, PathBuf},
-    process::{self, Stdio},
+    process::Stdio,
 };
 
 use ashpd::{
@@ -91,12 +91,12 @@ enum FlatrunCommand {
         #[arg(short, long)]
         bundle_path: String,
     },
-    /// Download an app from a remote (Flathub by default)
-    Download {
-        /// App id for app to download (e.g. com.visualstudio.code)
-        #[arg(short, long)]
-        appid: String,
-    },
+    // /// Download an app from a remote (Flathub by default)
+    // Download {
+    //     /// App id for app to download (e.g. com.visualstudio.code)
+    //     #[arg(short, long)]
+    //     appid: String,
+    // },
 }
 
 #[async_std::main]
@@ -111,11 +111,11 @@ async fn main() -> Result<(), FlatrunError> {
             run_bundle(path_from_uri(bundle_path)?, cli.gui).await?;
             Ok(())
         }
-        Some(FlatrunCommand::Download { appid }) => {
-            let (temp_repo, deps_repo) = get_repos()?;
-            log::info!("temp_repo: {:?}, deps_repo: {:?}", temp_repo, deps_repo);
-            Ok(())
-        }
+        // Some(FlatrunCommand::Download { appid }) => {
+        //     let (temp_repo, deps_repo) = get_repos()?;
+        //     log::info!("temp_repo: {:?}, deps_repo: {:?}", temp_repo, deps_repo);
+        //     Ok(())
+        // }
         None => {
             let path = get_file_from_chooser().await?;
             run_bundle(path, cli.gui).await?;

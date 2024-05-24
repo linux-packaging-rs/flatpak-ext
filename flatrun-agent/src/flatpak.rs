@@ -1,8 +1,7 @@
 use std::{
-    env, io,
+    io,
     path::PathBuf,
-    thread::{self, sleep},
-    time::Duration,
+    thread::{self},
 };
 
 use libflatpak::{
@@ -15,10 +14,7 @@ use libflatpak::{
     BundleRef, Installation, LaunchFlags, Remote,
 };
 use rustix::{process::WaitOptions, thread::Pid};
-use signal_hook::{
-    consts::{SIGINT, SIGKILL, SIGTERM},
-    iterator::Signals,
-};
+use signal_hook::{consts::SIGINT, iterator::Signals};
 
 use crate::FlatrunAgentError;
 

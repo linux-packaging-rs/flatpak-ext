@@ -39,11 +39,11 @@ enum AgentCommand {
         deps_installation: PathBuf,
         path: PathBuf,
     },
-    InstallRunDownload {
-        installation: PathBuf,
-        deps_installation: PathBuf,
-        appid: String,
-    },
+    // InstallRunDownload {
+    //     installation: PathBuf,
+    //     deps_installation: PathBuf,
+    //     appid: String,
+    // },
 }
 
 fn main() -> Result<(), FlatrunAgentError> {
@@ -60,11 +60,11 @@ fn main() -> Result<(), FlatrunAgentError> {
                 eprintln!("{:?}", e);
             }
         },
-        Some(AgentCommand::InstallRunDownload {
-            installation,
-            deps_installation,
-            appid,
-        }) => {}
+        // Some(AgentCommand::InstallRunDownload {
+        //     installation,
+        //     deps_installation,
+        //     appid,
+        // }) => {}
         None => {}
     }
     Ok(())
