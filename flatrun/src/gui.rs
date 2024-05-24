@@ -30,8 +30,8 @@ use iced::{
     command, executor,
     futures::SinkExt,
     subscription,
-    widget::{column, text},
-    window, Application, Command, Element, Theme,
+    widget::{column, row, text},
+    window, Alignment, Application, Command, Element, Length, Theme,
 };
 
 impl Application for ProgressInfo {
@@ -63,13 +63,21 @@ impl Application for ProgressInfo {
     fn view(&self) -> Element<Message> {
         // We use a column: a simple vertical layout
         column![
-            text("Flatrun: Run flatpaks without installing"),
-            text(&self.repo),
-            text(&self.action),
-            text(&self.app_ref),
-            text(&self.message),
-            iced::widget::progress_bar(0.0..=1.0, self.progress),
+            text("Flatrun: Run flatpaks without installing")
+                .horizontal_alignment(iced::alignment::Horizontal::Center),
+            row![
+                text(&self.repo).horizontal_alignment(iced::alignment::Horizontal::Left),
+                text(&self.action).horizontal_alignment(iced::alignment::Horizontal::Right),
+            ]
+            .width(Length::Fill),
+            row![
+                text(&self.app_ref).horizontal_alignment(iced::alignment::Horizontal::Left),
+                text(&self.message).horizontal_alignment(iced::alignment::Horizontal::Right),
+            ]
+            .width(Length::Fill),
+            iced::widget::progress_bar(0.0..=1.0, self.progress).width(Length::Fill),
         ]
+        .padding(32)
         .into()
     }
 

@@ -1,4 +1,4 @@
-![Flatrun](images/social_preview.png)
+![Flatrun](res/social_preview.png)
 
 Run `flatrun run path <path_to_flatpak>` to run a .flatpak file!
 
