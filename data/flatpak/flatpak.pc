@@ -10,3 +10,5 @@ httpbackend=curl
 Name: flatpak
 Description: Application sandboxing framework
 Version: 1.14.8
+Libs: -L${libdir} -lflatpak
+Cflags: -I${includedir}/flatpak
