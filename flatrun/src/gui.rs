@@ -85,7 +85,7 @@ impl Application for ProgressInfo {
             }
             Message::Hide => {
                 log::info!("HIDE!");
-                window::change_mode(window::Id::MAIN, window::Mode::Hidden)
+                window::change_mode::<Message>(window::Id::MAIN, window::Mode::Hidden)
             }
             Message::Done => {
                 log::info!("CLOSE!");
