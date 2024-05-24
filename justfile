@@ -58,9 +58,13 @@ build-vendored *args: vendor-extract (build-release '--frozen --offline' args)
 
 build-flatpak *args:
     touch /app/lib/libflatpak.so
+    touch /app/bin/flatpak
+    install -Dm0644 data/flatpak/flatpak.pc /app/lib/pkgconfig/flatpak.pc
     cargo --offline fetch --manifest-path Cargo.toml --verbose
     cargo --offline build --release --verbose
-    rm /app/lib/flatpak
+    rm /app/lib/pkgconfig/flatpak.pc
+    rm /app/lib/libflatpak.so
+    rm /app/bin/flatpak
 
 # Runs a clippy check
 check *args:
