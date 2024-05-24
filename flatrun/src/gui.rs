@@ -63,6 +63,7 @@ impl Application for ProgressInfo {
     fn view(&self) -> Element<Message> {
         // We use a column: a simple vertical layout
         column![
+            text("Flatrun: Run flatpaks without installing"),
             text(&self.repo),
             text(&self.action),
             text(&self.app_ref),
