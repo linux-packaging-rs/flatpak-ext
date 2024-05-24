@@ -1,10 +1,16 @@
-![Flatrun](res/social_preview.png)
+# Flatrun - Run Flatpaks without installing!
 
-Run `flatrun run path <path_to_flatpak>` to run a .flatpak file!
+Run the graphical user interface:
 
-Or, run a flatpak from flathub with `flatrun run name flathub <appid>`!
+```sh
+flatpak run io.github.ryanabx.flatrun --gui
+```
 
-Try `flatrun --gui` to run the graphical interface!
+Or, run a .flatpak bundle straight from the terminal!:
+
+```sh
+flatpak run io.github.ryanabx.flatrun bundle [PATH]
+```
 
 > **NOTE:** Please help test this and [Submit ISSUES](https://github.com/ryanabx/flatrun/issues/new) when you come across them!
 
@@ -13,5 +19,11 @@ Try `flatrun --gui` to run the graphical interface!
 **Flatpak is the only supported method of building Flatrun**. Install `flatpak-builder` and run:
 
 ```sh
-flatpak-builder --install --user .build flatpak/io.github.ryanabx.flatrun.yml
+flatpak-builder --install --user [BUILD_DIR] flatpak/io.github.ryanabx.flatrun.yml
 ```
+
+## Screenshots
+
+![Loading screen for Flatrun](res/screenshot1.png)
+
+![Running screen for Flatrun](res/screenshot2.png)
