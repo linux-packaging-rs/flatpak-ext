@@ -330,7 +330,7 @@ pub fn install_bundle(
         .unwrap();
 
     let pid = Pid::from_raw(inst.pid()).unwrap();
-    let mut signals = Signals::new(&[SIGINT, SIGTERM, SIGKILL])?;
+    let mut signals = Signals::new(&[SIGINT])?;
 
     thread::spawn(move || {
         for sig in signals.forever() {
