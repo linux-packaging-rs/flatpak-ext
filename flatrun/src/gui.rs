@@ -8,6 +8,7 @@ pub struct ProgressInfo {
     app: RunApp,
     temp_repo: PathBuf,
     deps_repo: PathBuf,
+    is_loading: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -30,7 +31,7 @@ use iced::{
     command, executor,
     futures::SinkExt,
     subscription,
-    widget::{column, row, text},
+    widget::{button, column, row, text},
     window, Alignment, Application, Command, Element, Length, Theme,
 };
 
@@ -51,6 +52,7 @@ impl Application for ProgressInfo {
                 app: flags.0,
                 temp_repo: flags.1,
                 deps_repo: flags.2,
+                is_loading: true,
             },
             Command::none(),
         )
@@ -61,30 +63,46 @@ impl Application for ProgressInfo {
     }
 
     fn view(&self) -> Element<Message> {
-        // We use a column: a simple vertical layout
-        column![
-            text("Flatrun: Run flatpaks without installing")
-                .horizontal_alignment(iced::alignment::Horizontal::Center),
-            row![
-                text(&self.repo)
-                    .horizontal_alignment(iced::alignment::Horizontal::Left)
-                    .width(Length::Fill),
-                text(&self.action)
-                    .horizontal_alignment(iced::alignment::Horizontal::Right)
-                    .width(Length::Fill),
+        if self.is_loading {
+            column![
+                text("Flatrun: Run flatpaks without installing")
+                    .horizontal_alignment(iced::alignment::Horizontal::Center),
+                row![
+                    text(&self.repo)
+                        .horizontal_alignment(iced::alignment::Horizontal::Left)
+                        .width(Length::Fill),
+                    text(&self.action)
+                        .horizontal_alignment(iced::alignment::Horizontal::Right)
+                        .width(Length::Fill),
+                ]
+                .width(Length::Fill),
+                row![
+                    text(&self.app_ref)
+                        .horizontal_alignment(iced::alignment::Horizontal::Left)
+                        .width(Length::Fill),
+                    text(&self.message)
+                        .horizontal_alignment(iced::alignment::Horizontal::Right)
+                        .width(Length::Fill),
+                ]
+                .width(Length::Fill),
+                iced::widget::progress_bar(0.0..=1.0, self.progress).width(Length::Fill),
             ]
-            .width(Length::Fill),
-            row![
-                text(&self.app_ref)
-                    .horizontal_alignment(iced::alignment::Horizontal::Left)
-                    .width(Length::Fill),
-                text(&self.message)
-                    .horizontal_alignment(iced::alignment::Horizontal::Right)
-                    .width(Length::Fill),
+        } else {
+            column![
+                text("Flatrun: Run flatpaks without installing")
+                    .horizontal_alignment(iced::alignment::Horizontal::Center),
+                row![
+                    text(&self.app_ref)
+                        .horizontal_alignment(iced::alignment::Horizontal::Left)
+                        .width(Length::Fill),
+                    text("Running Application")
+                        .horizontal_alignment(iced::alignment::Horizontal::Right)
+                        .width(Length::Fill),
+                ]
+                .width(Length::Fill),
+                button(text(format!("Close {}", &self.app_ref))).on_press(Message::Done)
             ]
-            .width(Length::Fill),
-            iced::widget::progress_bar(0.0..=1.0, self.progress).width(Length::Fill),
-        ]
+        }
         .padding(32)
         .align_items(Alignment::Center)
         .height(Length::Fill)
@@ -105,10 +123,13 @@ impl Application for ProgressInfo {
             }
             Message::Hide => {
                 log::info!("HIDE!");
-                Command::batch([
-                    window::minimize(window::Id::MAIN, true), // see: https://github.com/rust-windowing/winit/issues/2388#issuecomment-1416733516
-                    window::change_mode::<Message>(window::Id::MAIN, window::Mode::Hidden),
-                ])
+                // Command::batch([
+                //     // window::minimize(window::Id::MAIN, true), // see: https://github.com/rust-windowing/winit/issues/2388#issuecomment-1416733516
+                //     // window::change_mode::<Message>(window::Id::MAIN, window::Mode::Hidden),
+
+                // ])
+                self.is_loading = false;
+                Command::none()
             }
             Message::Done => {
                 log::info!("CLOSE!");
