@@ -68,16 +68,15 @@ impl Application for ProgressInfo {
             row![
                 text(&self.repo).horizontal_alignment(iced::alignment::Horizontal::Left),
                 text(&self.action).horizontal_alignment(iced::alignment::Horizontal::Right),
-            ]
-            .width(Length::Fill),
+            ],
             row![
                 text(&self.app_ref).horizontal_alignment(iced::alignment::Horizontal::Left),
                 text(&self.message).horizontal_alignment(iced::alignment::Horizontal::Right),
-            ]
-            .width(Length::Fill),
-            iced::widget::progress_bar(0.0..=1.0, self.progress).width(Length::Fill),
+            ],
+            iced::widget::progress_bar(0.0..=1.0, self.progress),
         ]
         .padding(32)
+        .align_items(Alignment::Center)
         .into()
     }
 
