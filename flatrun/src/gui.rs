@@ -5,11 +5,16 @@ pub struct ProgressInfo {
     app_ref: String,
     message: String,
     progress: f32,
-    app: RunApp,
     temp_repo: PathBuf,
     deps_repo: PathBuf,
-    is_loading: bool,
+    app_state: AppState,
     process: Option<rustix::process::Pid>,
+}
+
+#[derive(Clone, Debug)]
+pub enum AppState {
+    LoadingFile(RunApp),
+    Done,
 }
 
 #[derive(Clone, Debug)]
@@ -25,7 +30,7 @@ pub enum Message {
     Close,
 }
 
-use std::{path::PathBuf, process::Child};
+use std::{future::IntoFuture, path::PathBuf, process::Child};
 
 use async_std::task::spawn;
 use iced::{
@@ -33,12 +38,12 @@ use iced::{
     futures::SinkExt,
     subscription,
     widget::{button, column, row, text},
-    window, Alignment, Application, Command, Element, Length, Theme,
+    window, Alignment, Application, Command, Element, Length, Subscription, Theme,
 };
 
 impl Application for ProgressInfo {
     type Executor = executor::Default;
-    type Flags = (RunApp, PathBuf, PathBuf);
+    type Flags = (PathBuf, PathBuf, AppState);
     type Message = Message;
     type Theme = Theme;
 
@@ -50,10 +55,9 @@ impl Application for ProgressInfo {
                 app_ref: "".into(),
                 message: "".into(),
                 progress: 0.0,
-                app: flags.0,
-                temp_repo: flags.1,
-                deps_repo: flags.2,
-                is_loading: true,
+                temp_repo: flags.0,
+                deps_repo: flags.1,
+                app_state: flags.2,
                 process: None,
             },
             Command::none(),
@@ -65,45 +69,48 @@ impl Application for ProgressInfo {
     }
 
     fn view(&self) -> Element<Message> {
-        if self.is_loading {
-            column![
-                text("Flatrun: Run flatpaks without installing")
-                    .horizontal_alignment(iced::alignment::Horizontal::Center),
-                row![
-                    text(&self.repo)
-                        .horizontal_alignment(iced::alignment::Horizontal::Left)
-                        .width(Length::Fill),
-                    text(&self.action)
-                        .horizontal_alignment(iced::alignment::Horizontal::Right)
-                        .width(Length::Fill),
+        match self.app_state {
+            AppState::LoadingFile(_) => {
+                column![
+                    text("Flatrun: Run flatpaks without installing")
+                        .horizontal_alignment(iced::alignment::Horizontal::Center),
+                    row![
+                        text(&self.repo)
+                            .horizontal_alignment(iced::alignment::Horizontal::Left)
+                            .width(Length::Fill),
+                        text(&self.action)
+                            .horizontal_alignment(iced::alignment::Horizontal::Right)
+                            .width(Length::Fill),
+                    ]
+                    .width(Length::Fill),
+                    row![
+                        text(&self.app_ref)
+                            .horizontal_alignment(iced::alignment::Horizontal::Left)
+                            .width(Length::Fill),
+                        text(&self.message)
+                            .horizontal_alignment(iced::alignment::Horizontal::Right)
+                            .width(Length::Fill),
+                    ]
+                    .width(Length::Fill),
+                    iced::widget::progress_bar(0.0..=1.0, self.progress).width(Length::Fill),
                 ]
-                .width(Length::Fill),
-                row![
-                    text(&self.app_ref)
-                        .horizontal_alignment(iced::alignment::Horizontal::Left)
-                        .width(Length::Fill),
-                    text(&self.message)
-                        .horizontal_alignment(iced::alignment::Horizontal::Right)
-                        .width(Length::Fill),
+            }
+            AppState::Done => {
+                column![
+                    text("Flatrun: Run flatpaks without installing")
+                        .horizontal_alignment(iced::alignment::Horizontal::Center),
+                    row![
+                        text(&self.app_ref)
+                            .horizontal_alignment(iced::alignment::Horizontal::Left)
+                            .width(Length::Fill),
+                        text("Running Application")
+                            .horizontal_alignment(iced::alignment::Horizontal::Right)
+                            .width(Length::Fill),
+                    ]
+                    .width(Length::Fill),
+                    button(text(format!("Close {}", &self.app_ref))).on_press(Message::Close)
                 ]
-                .width(Length::Fill),
-                iced::widget::progress_bar(0.0..=1.0, self.progress).width(Length::Fill),
-            ]
-        } else {
-            column![
-                text("Flatrun: Run flatpaks without installing")
-                    .horizontal_alignment(iced::alignment::Horizontal::Center),
-                row![
-                    text(&self.app_ref)
-                        .horizontal_alignment(iced::alignment::Horizontal::Left)
-                        .width(Length::Fill),
-                    text("Running Application")
-                        .horizontal_alignment(iced::alignment::Horizontal::Right)
-                        .width(Length::Fill),
-                ]
-                .width(Length::Fill),
-                button(text(format!("Close {}", &self.app_ref))).on_press(Message::Close)
-            ]
+            }
         }
         .padding(32)
         .align_items(Alignment::Center)
@@ -124,7 +131,7 @@ impl Application for ProgressInfo {
                 Command::none()
             }
             Message::Finished(pid) => {
-                self.is_loading = false;
+                self.app_state = AppState::Done;
                 self.process = Some(pid);
                 Command::none()
             }
@@ -147,34 +154,37 @@ impl Application for ProgressInfo {
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
-        let app = self.app.clone();
-        let (temp_repo, deps_repo) = (self.temp_repo.clone(), self.deps_repo.clone());
-        subscription::channel(
-            std::any::TypeId::of::<Message>(),
-            50,
-            move |mut output| async move {
-                match app {
-                    RunApp::Bundle(path) => {
-                        spawn(async move {
-                            crate::run_bundle_inner(
-                                &temp_repo,
-                                &deps_repo,
-                                &path,
-                                &mut Some(&mut output),
-                            )
-                            .await
-                            .unwrap();
-                            let _ = output.send(Message::Close).await;
-                        });
+        if let AppState::LoadingFile(f) = self.app_state.clone() {
+            let (temp_repo, deps_repo) = (self.temp_repo.clone(), self.deps_repo.clone());
+            subscription::channel(
+                std::any::TypeId::of::<Message>(),
+                50,
+                move |mut output| async move {
+                    match f {
+                        RunApp::Bundle(path) => {
+                            spawn(async move {
+                                crate::run_bundle_inner(
+                                    &temp_repo,
+                                    &deps_repo,
+                                    &path,
+                                    &mut Some(&mut output),
+                                )
+                                .await
+                                .unwrap();
+                                let _ = output.send(Message::Close).await;
+                            });
+                        }
+                        RunApp::Download(appid) => {
+                            // TODO
+                        }
                     }
-                    RunApp::Download(appid) => {
-                        // TODO
+                    loop {
+                        async_std::future::pending::<i32>().await;
                     }
-                }
-                loop {
-                    async_std::future::pending::<i32>().await;
-                }
-            },
-        )
+                },
+            )
+        } else {
+            Subscription::none()
+        }
     }
 }

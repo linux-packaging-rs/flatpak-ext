@@ -12,6 +12,7 @@ use ashpd::{
 };
 use clap::{arg, Parser, Subcommand};
 use flatpak_unsandbox::{Program, ProgramArg, UnsandboxError};
+use gui::AppState;
 use iced::{
     futures::{
         channel::mpsc::{SendError, Sender},
@@ -171,7 +172,7 @@ async fn get_file_from_chooser() -> Result<PathBuf, FlatrunError> {
         .accept_label("Run Flatpak")
         .modal(true)
         .multiple(false)
-        .identifier(Some(WindowIdentifier::default()))
+        .identifier(WindowIdentifier::default())
         .filter(FileFilter::new(".flatpak").mimetype("application/vnd.flatpak"))
         .send()
         .await?
@@ -192,9 +193,9 @@ pub async fn run_bundle(bundle_path: PathBuf, gui: bool) -> Result<(), FlatrunEr
     let (temp_repo, deps_repo) = get_repos()?;
     if gui {
         let mut settings = Settings::with_flags((
-            gui::RunApp::Bundle(bundle_path),
             temp_repo.clone(),
             deps_repo,
+            AppState::LoadingFile(gui::RunApp::Bundle(bundle_path)),
         ));
         settings.id = Some("io.github.ryanabx.flatrun".into());
         settings.window.platform_specific.application_id = "io.github.ryanabx.flatrun".into();
