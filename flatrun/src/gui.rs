@@ -85,7 +85,10 @@ impl Application for ProgressInfo {
             }
             Message::Hide => {
                 log::info!("HIDE!");
-                window::change_mode::<Message>(window::Id::MAIN, window::Mode::Hidden)
+                Command::batch([
+                    window::minimize(window::Id::MAIN, true), // see: https://github.com/rust-windowing/winit/issues/2388#issuecomment-1416733516
+                    window::change_mode::<Message>(window::Id::MAIN, window::Mode::Hidden),
+                ])
             }
             Message::Done => {
                 log::info!("CLOSE!");

@@ -14,6 +14,7 @@ use iced::{
         channel::mpsc::{SendError, Sender},
         SinkExt,
     },
+    window::Position,
     Application, Settings,
 };
 use rand::{distributions::Alphanumeric, Rng};
@@ -193,6 +194,10 @@ pub async fn run_bundle(bundle_path: PathBuf, gui: bool) -> Result<(), FlatrunEr
         settings.id = Some("io.github.ryanabx.flatrun".into());
         settings.window.platform_specific.application_id = "io.github.ryanabx.flatrun".into();
         settings.window.exit_on_close_request = false;
+        settings.window.decorations = false;
+        settings.window.max_size = Some([320, 120].into());
+        settings.window.min_size = Some([320, 120].into());
+        settings.window.position = Position::Centered;
         ProgressInfo::run(settings)?;
         let _ = std::fs::remove_dir(&temp_repo);
         Ok(())
