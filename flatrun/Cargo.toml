@@ -19,3 +19,4 @@ log.workspace = true
 flatpak-unsandbox = {git = "https://github.com/ryanabx/flatpak-unsandbox", branch="changes/forward-dirs"}
 iced = "0.12.1"
 rand = "0.8.5"
+rustix = "0.38.34"

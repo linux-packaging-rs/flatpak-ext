@@ -3,7 +3,7 @@ use std::{
     env, fs,
     io::{self, BufRead, BufReader},
     path::{Path, PathBuf},
-    process::Stdio,
+    process::{self, Stdio},
 };
 
 use ashpd::{
@@ -21,6 +21,7 @@ use iced::{
     Application, Settings,
 };
 use rand::{distributions::Alphanumeric, Rng};
+use rustix::thread::Pid;
 
 use crate::gui::ProgressInfo;
 
@@ -243,58 +244,59 @@ pub async fn run_bundle_inner(
         let stdout = child.stdout.take().unwrap();
         // Stream output.
         let lines = BufReader::new(stdout).lines();
-        'buffered_reader: {
-            for line in lines {
-                let l = match line {
-                    Ok(a) => a,
-                    Err(_) => break 'buffered_reader,
-                };
-                let update_metadata = l.split("::").map(|x| x.to_string()).collect::<Vec<_>>();
-                println!("GOT LINE: {:?}", update_metadata);
-                if update_metadata.len() != 5 {
-                    if l.contains("RUNNING_APPLICATION") {
-                        if let Some(s) = sender {
-                            log::info!("Sending hide command!");
-                            if let Err(e) = s.send(gui::Message::Hide).await {
-                                log::error!("{:?}", e);
-                                break 'buffered_reader;
-                            }
+        for line in lines {
+            let l = match line {
+                Ok(a) => a,
+                Err(_) => break,
+            };
+            let update_metadata = l.split("::").map(|x| x.to_string()).collect::<Vec<_>>();
+            println!("GOT LINE: {:?}", update_metadata);
+            if update_metadata.len() != 5 {
+                if l.contains("RUNNING_APPLICATION") {
+                    if let Some(s) = sender {
+                        log::info!("Sending hide command!");
+                        if let Err(e) = s
+                            .send(gui::Message::Finished(Pid::from_child(&child)))
+                            .await
+                        {
+                            log::error!("{:?}", e);
+                            break;
                         }
                     }
-                    continue;
                 }
-                let repo = update_metadata.get(0).unwrap().clone();
-                let action = update_metadata.get(1).unwrap().clone();
-                let app_ref = update_metadata.get(2).unwrap().clone();
-                let message = update_metadata.get(3).unwrap().clone();
-                let progress = update_metadata
-                    .get(4)
-                    .unwrap()
-                    .clone()
-                    .parse::<i32>()
-                    .unwrap();
-                if let Some(s) = sender {
-                    log::info!("Sending the info!");
-                    if let Err(e) = s
-                        .send(gui::Message::UpdateProgress((
-                            repo,
-                            action,
-                            app_ref,
-                            message,
-                            progress as f32 / 100.0,
-                        )))
-                        .await
-                    {
-                        log::error!("{:?}", e);
-                        break 'buffered_reader;
-                    }
+                continue;
+            }
+            let repo = update_metadata.get(0).unwrap().clone();
+            let action = update_metadata.get(1).unwrap().clone();
+            let app_ref = update_metadata.get(2).unwrap().clone();
+            let message = update_metadata.get(3).unwrap().clone();
+            let progress = update_metadata
+                .get(4)
+                .unwrap()
+                .clone()
+                .parse::<i32>()
+                .unwrap();
+            if let Some(s) = sender {
+                log::info!("Sending the info!");
+                if let Err(e) = s
+                    .send(gui::Message::Progress((
+                        repo,
+                        action,
+                        app_ref,
+                        message,
+                        progress as f32 / 100.0,
+                    )))
+                    .await
+                {
+                    log::error!("{:?}", e);
+                    break;
                 }
             }
         }
     }
     if let Some(s) = sender {
         log::info!("Sending hide command!");
-        if let Err(e) = s.send(gui::Message::Done).await {
+        if let Err(e) = s.send(gui::Message::Close).await {
             log::error!("{:?}", e);
         }
     }

@@ -9,6 +9,7 @@ pub struct ProgressInfo {
     temp_repo: PathBuf,
     deps_repo: PathBuf,
     is_loading: bool,
+    process: Option<rustix::process::Pid>,
 }
 
 #[derive(Clone, Debug)]
@@ -19,12 +20,12 @@ pub enum RunApp {
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    UpdateProgress((String, String, String, String, f32)),
-    Hide,
-    Done,
+    Progress((String, String, String, String, f32)),
+    Finished(rustix::process::Pid),
+    Close,
 }
 
-use std::path::PathBuf;
+use std::{path::PathBuf, process::Child};
 
 use async_std::task::spawn;
 use iced::{
@@ -53,6 +54,7 @@ impl Application for ProgressInfo {
                 temp_repo: flags.1,
                 deps_repo: flags.2,
                 is_loading: true,
+                process: None,
             },
             Command::none(),
         )
@@ -100,7 +102,7 @@ impl Application for ProgressInfo {
                         .width(Length::Fill),
                 ]
                 .width(Length::Fill),
-                button(text(format!("Close {}", &self.app_ref))).on_press(Message::Done)
+                button(text(format!("Close {}", &self.app_ref))).on_press(Message::Close)
             ]
         }
         .padding(32)
@@ -112,7 +114,7 @@ impl Application for ProgressInfo {
 
     fn update(&mut self, message: Message) -> iced::Command<Message> {
         match message {
-            Message::UpdateProgress((repo, action, app_ref, message, progress)) => {
+            Message::Progress((repo, action, app_ref, message, progress)) => {
                 self.repo = repo;
                 self.action = action;
                 self.app_ref = app_ref;
@@ -121,20 +123,26 @@ impl Application for ProgressInfo {
                 log::info!("UPDATE!");
                 Command::none()
             }
-            Message::Hide => {
-                log::info!("HIDE!");
-                // Command::batch([
-                //     // window::minimize(window::Id::MAIN, true), // see: https://github.com/rust-windowing/winit/issues/2388#issuecomment-1416733516
-                //     // window::change_mode::<Message>(window::Id::MAIN, window::Mode::Hidden),
-
-                // ])
+            Message::Finished(pid) => {
                 self.is_loading = false;
+                self.process = Some(pid);
                 Command::none()
             }
-            Message::Done => {
-                log::info!("CLOSE!");
-                let _ = std::fs::remove_dir(&self.temp_repo);
-                window::close::<Message>(window::Id::MAIN)
+            Message::Close => {
+                log::info!("CLOSE REQUESTED!");
+                if let Some(pid) = self.process {
+                    if let Err(e) =
+                        rustix::process::kill_process(pid, rustix::process::Signal::Kill)
+                    {
+                        log::error!("Failed to kill process: {:?}", e);
+                        Command::none()
+                    } else {
+                        let _ = std::fs::remove_dir(&self.temp_repo);
+                        window::close::<Message>(window::Id::MAIN)
+                    }
+                } else {
+                    Command::none()
+                }
             }
         }
     }
@@ -157,7 +165,7 @@ impl Application for ProgressInfo {
                             )
                             .await
                             .unwrap();
-                            output.send(Message::Done).await.unwrap();
+                            output.send(Message::Close).await.unwrap();
                         });
                     }
                     RunApp::Download(appid) => {

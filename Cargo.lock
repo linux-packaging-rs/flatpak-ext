@@ -1188,6 +1188,7 @@ dependencies = [
  "iced",
  "log",
  "rand",
+ "rustix 0.38.34",
 ]
 
 [[package]]
