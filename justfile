@@ -56,6 +56,12 @@ build-release *args: (build-debug '--release' args)
 # Compiles release profile with vendored dependencies
 build-vendored *args: vendor-extract (build-release '--frozen --offline' args)
 
+build-flatpak *args:
+    touch /app/lib/flatpak
+    cargo --offline fetch --manifest-path Cargo.toml --verbose
+    cargo --offline build --release --verbose
+    rm /app/lib/flatpak
+
 # Runs a clippy check
 check *args:
     cargo clippy --all-features {{args}} -- -W clippy::pedantic

@@ -4,8 +4,8 @@ runtime-version: "23.08"
 sdk: org.freedesktop.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.rust-stable
-base: org.flatpak.Builder.BaseApp
-base-version: "23.08"
+# base: org.flatpak.Builder.BaseApp
+# base-version: "23.08"
 separate-locales: false
 command: flatrun
 finish-args:
@@ -25,8 +25,6 @@ finish-args:
   - "--socket=fallback-x11"
 build-options:
   append-path: "/usr/lib/sdk/rust-stable/bin"
-  # build-args:
-  #   - "--share=network"
   env:
     CARGO_HOME: "/run/build/flatrun/cargo"
 modules:
@@ -53,11 +51,11 @@ modules:
   - name: flatrun
     buildsystem: simple
     build-commands:
-      - just vendor
-      - just build-vendored
+      - just build-flatpak
       - just flatpak
     sources:
       - type: git
         url: https://github.com/ryanabx/flatrun.git
         branch: master
+      - generated-sources.json
         

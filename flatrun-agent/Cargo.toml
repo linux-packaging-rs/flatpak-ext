@@ -9,6 +9,6 @@ repository = "https://github.com/ryanabx/flatrun"
 license = "MIT"
 
 [dependencies]
-libflatpak.workspace = true
+libflatpak = "0.5.0"
 clap.workspace = true
 log.workspace = true
