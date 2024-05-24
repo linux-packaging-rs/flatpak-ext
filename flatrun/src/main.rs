@@ -6,7 +6,10 @@ use std::{
     process::Stdio,
 };
 
-use ashpd::desktop::file_chooser::{FileFilter, SelectedFiles};
+use ashpd::{
+    desktop::file_chooser::{FileFilter, SelectedFiles},
+    WindowIdentifier,
+};
 use clap::{arg, Parser, Subcommand};
 use flatpak_unsandbox::{Program, ProgramArg, UnsandboxError};
 use iced::{
@@ -167,6 +170,7 @@ async fn get_file_from_chooser() -> Result<PathBuf, FlatrunError> {
         .accept_label("Run Flatpak")
         .modal(true)
         .multiple(false)
+        .identifier(Some(WindowIdentifier::default()))
         .filter(FileFilter::new(".flatpak").mimetype("application/vnd.flatpak"))
         .send()
         .await?
