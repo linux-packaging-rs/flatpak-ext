@@ -131,8 +131,7 @@ impl Application for ProgressInfo {
             Message::Close => {
                 log::info!("CLOSE REQUESTED!");
                 if let Some(pid) = self.process {
-                    if let Err(e) =
-                        rustix::process::kill_process(pid, rustix::process::Signal::Int)
+                    if let Err(e) = rustix::process::kill_process(pid, rustix::process::Signal::Int)
                     {
                         log::error!("Failed to kill process: {:?}", e);
                         Command::none()
@@ -165,7 +164,7 @@ impl Application for ProgressInfo {
                             )
                             .await
                             .unwrap();
-                            output.send(Message::Close).await.unwrap();
+                            let _ = output.send(Message::Close).await;
                         });
                     }
                     RunApp::Download(appid) => {
