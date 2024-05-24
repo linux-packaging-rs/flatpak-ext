@@ -57,7 +57,7 @@ build-release *args: (build-debug '--release' args)
 build-vendored *args: vendor-extract (build-release '--frozen --offline' args)
 
 build-flatpak *args:
-    touch /app/lib/flatpak
+    touch /app/lib/libflatpak.so
     cargo --offline fetch --manifest-path Cargo.toml --verbose
     cargo --offline build --release --verbose
     rm /app/lib/flatpak
