@@ -6,25 +6,18 @@ sdk-extensions:
   - org.freedesktop.Sdk.Extension.rust-stable
 base: org.flatpak.Builder.BaseApp
 base-version: "23.08"
-# base: org.flatpak.Builder.BaseApp
-# base-version: "23.08"
 separate-locales: false
 command: flatrun
 finish-args:
   - "--share=ipc"
-# # Access to system/user flatpak repositores is necessary for
-# # libflatpak to run.
-#   - "--filesystem=xdg-data/flatpak"
-#   - "--filesystem=/var/lib/flatpak"
-# # Necessary for downloading runtimes if they aren't installed
-#   - "--share=network"
-# Necessary for running the flatpak at the end and installing not installed
-# runtimes, runs through flatrun-host
-  - "--talk-name=org.freedesktop.Flatpak"
-# For GUI
   - "--device=dri"
   - "--socket=wayland"
   - "--socket=fallback-x11"
+# Unfortunately, it's necessary for us to have this permission
+# all unsandboxed access is run through flatrun-agent.
+# flatrun-agent installs system runtimes and launches flatpaks
+# from a local repo (non system and non user).
+  - "--talk-name=org.freedesktop.Flatpak"
 build-options:
   append-path: "/usr/lib/sdk/rust-stable/bin"
   env:
@@ -81,6 +74,6 @@ modules:
     sources:
       - type: git
         url: https://github.com/ryanabx/flatrun.git
-        tag: v0.1.1
+        tag: v0.1.2
       - generated-sources.json
         

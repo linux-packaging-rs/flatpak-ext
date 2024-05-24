@@ -2,16 +2,51 @@
 <component type="desktop-application">
     <id>io.github.ryanabx.flatrun</id>
     <name>Flatrun</name>
-    <metadata_license>CC0-1.0</metadata_license>
+    <developer id="io.github.ryanabx">
+        <name>Ryan Brue</name>
+    </developer>
+    <metadata_license>MIT</metadata_license>
     <project_license>MIT</project_license>
-    <summary>Run flatpaks without installing them!</summary>
+    <summary>Run flatpaks without installing!</summary>
     <description>
-        <p>
-            Flatrun is a command-line or GUI program that allows users to run Flatpak applications without installing them to their main system or user installation. Runtimes are installed to the system installation by default, for reuse.
+        <p> Flatrun - Run flatpak bundles without installing!
+            Flatrun is a graphical and optional command-line tool that allows you to run flatpak bundles
+            without installing them to your system or user installation! Runtimes will be installed to your
+            system installation to be reused by any other flatpak!
+
+            In future versions, flatrun will be able to download an app straight from Flathub to run temporarily!
         </p>
     </description>
     <developer_name>Ryan Brue</developer_name>
     <update_contact>ryanbrue@gmail.com</update_contact>
     <url type="homepage">https://ryanabx.github.io/flatrun</url>
     <launchable type="desktop-id">io.github.ryanabx.flatrun.desktop</launchable>
+    <screenshots>
+        <screenshot type="default" xml:lang="en">
+            <image>https://raw.githubusercontent.com/ryanabx/flatrun/0.1.1/res/screenshot2.png</image>
+            <caption>Flatrun when the app is running.</caption>
+        </screenshot>
+        <screenshot xml:lang="en">
+            <image>https://raw.githubusercontent.com/ryanabx/flatrun/0.1.1/res/screenshot1.png</image>
+            <caption>Installing a runtime</caption>
+        </screenshot>
+    </screenshots>
+
+    <releases>
+        <release version="0.1.2" date="2024-05-23">
+            <description>
+                <p>Add required properties to metadata</p>
+            </description>
+        </release>
+        <release version="0.1.1" date="2024-05-23">
+            <description>
+                <p>Added screenshots, fixes to metadata</p>
+            </description>
+        </release>
+        <release version="0.1.0" date="2024-05-23">
+            <description>
+                <p>First stable release</p>
+            </description>
+        </release>
+    </releases>
 </component>
