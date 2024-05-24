@@ -1,4 +1,4 @@
-use std::{io, path::PathBuf, thread::sleep, time::Duration};
+use std::{env, io, path::PathBuf, thread::sleep, time::Duration};
 
 use libflatpak::{
     gio::prelude::FileExt,
@@ -308,6 +308,9 @@ pub fn install_bundle(
     // Signal to gui to hide
     println!("RUNNING_APPLICATION");
     // Run bundle
+    env::set_var("SDL_VIDEO_WAYLAND_WMCLASS", "io.github.ryanabx.flatrun");
+    env::set_var("APP_ID", "io.github.ryanabx.flatrun");
+    env::set_var("WAYLAND_APP_ID", "io.github.ryanabx.flatrun");
     let inst = bundle_install.launch_full(
         LaunchFlags::NONE,
         &app_name,
