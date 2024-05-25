@@ -60,11 +60,12 @@ modules:
       - install -Dm0755 target/release/flatrun-agent /app/libexec/flatrun-agent
       - install -Dm0644 data/flatrun.desktop /app/share/applications/io.github.ryanabx.flatrun.desktop
       - install -Dm0644 data/flatrun-bundle.desktop /app/share/applications/io.github.ryanabx.flatrun-bundle.desktop
-      - install -Dm0644 data/io.github.ryanabx.flatrun.metainfo.xml /app/share/metainfo/io.github.ryanabx.flatrun.metainfo.xml
+      - install -Dm0644 data/flatrun.metainfo.xml /app/share/metainfo/io.github.ryanabx.flatrun.metainfo.xml
       - install -Dm0644 data/flatrun.png /app/share/icons/hicolor/512x512/apps/io.github.ryanabx.flatrun.png
     sources:
       - type: git
         url: https://github.com/ryanabx/flatrun.git
-        tag: v0.1.2
+        branch: master
+        # tag: v0.1.2
       - generated-sources.json
         

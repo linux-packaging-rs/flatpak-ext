@@ -205,7 +205,7 @@ pub fn install_bundle(
     _deps_installation: PathBuf,
     path: PathBuf,
 ) -> Result<(), FlatrunAgentError> {
-    let bundle_install = get_repo(installation, true)?;
+    let bundle_install = get_repo(installation, false)?;
     let bundle_transaction = libflatpak::Transaction::for_installation(
         &bundle_install,
         libflatpak::gio::Cancellable::current().as_ref(),
