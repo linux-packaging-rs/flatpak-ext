@@ -69,7 +69,17 @@ modules:
   - name: flatrun
     buildsystem: simple
     build-commands:
+      # Build using BaseApp libs and binaries
       - just build-flatpak
+      # Cleanup BaseApp as we don't need it any more
+      - rm -rf /app/lib
+      - rm -rf /app/etc
+      - rm -rf /app/libexec
+      - rm -rf /app/include
+      - rm -rf /app/bin
+      - rm -rf /app/var
+      - rm -rf /app/share
+      # Install built executable
       - just flatpak
     sources:
       - type: git
