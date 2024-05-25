@@ -69,6 +69,7 @@ modules:
       - type: git
         url: https://github.com/ryanabx/flatrun.git
         branch: master
-        # tag: v0.1.2
+        # tag: 
+        # commit: 
       - generated-sources.json
         
