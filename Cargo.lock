@@ -1178,7 +1178,7 @@ dependencies = [
 
 [[package]]
 name = "flatrun"
-version = "0.1.0"
+version = "0.1.3"
 dependencies = [
  "ashpd",
  "async-std",
@@ -1193,7 +1193,7 @@ dependencies = [
 
 [[package]]
 name = "flatrun-agent"
-version = "0.1.0"
+version = "0.1.3"
 dependencies = [
  "clap",
  "libflatpak",

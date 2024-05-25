@@ -33,6 +33,11 @@
     </screenshots>
 
     <releases>
+        <release version="0.1.3" date="2024-05-23">
+            <description>
+                <p>Remove outdated code that added Flathub as a remote to the temporary repo</p>
+            </description>
+        </release>
         <release version="0.1.2" date="2024-05-23">
             <description>
                 <p>Add required properties to metadata</p>
