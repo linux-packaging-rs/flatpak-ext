@@ -27,3 +27,7 @@ flatpak-builder --install --user [BUILD_DIR] flatpak/io.github.ryanabx.flatrun.y
 ![Loading screen for Flatrun](res/screenshot1.png)
 
 ![Running screen for Flatrun](res/screenshot2.png)
+
+## Contributing
+
+This project is open to fixes and new features! It'd be helpful to make an issue describing what you plan to implement to avoid duplicate work!
