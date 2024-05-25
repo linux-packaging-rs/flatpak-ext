@@ -31,7 +31,7 @@ pub enum AppState {
 #[derive(Clone, Debug)]
 pub enum RunApp {
     Bundle(PathBuf),
-    Download(String),
+    // Download(String),
 }
 
 #[derive(Debug, Clone)]
@@ -173,10 +173,9 @@ impl Application for ProgressInfo {
                                 .unwrap();
                                 let _ = output.send(Message::Close).await;
                             });
-                        }
-                        RunApp::Download(appid) => {
-                            // TODO
-                        }
+                        } // RunApp::Download(appid) => {
+                          //     // TODO
+                          // }
                     }
                     loop {
                         async_std::future::pending::<i32>().await;

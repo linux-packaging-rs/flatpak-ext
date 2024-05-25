@@ -1,4 +1,4 @@
-use std::{io, path::PathBuf};
+use std::{fmt::Display, io, path::PathBuf};
 
 use clap::{Parser, Subcommand};
 
@@ -8,6 +8,15 @@ mod flatpak;
 enum FlatrunAgentError {
     Glib(libflatpak::glib::Error),
     IO(io::Error),
+}
+
+impl Display for FlatrunAgentError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Glib(e) => write!(f, "Glib error occurred: {}", e),
+            Self::IO(e) => write!(f, "IO: {}", e),
+        }
+    }
 }
 
 impl From<libflatpak::glib::Error> for FlatrunAgentError {
