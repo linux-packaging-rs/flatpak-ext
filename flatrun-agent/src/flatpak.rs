@@ -205,7 +205,7 @@ pub fn install_bundle(
     _deps_installation: PathBuf,
     path: PathBuf,
 ) -> Result<(), FlatrunAgentError> {
-    let bundle_install = get_repo(installation, false)?;
+    let bundle_install = get_repo(installation)?;
     let bundle_transaction = libflatpak::Transaction::for_installation(
         &bundle_install,
         libflatpak::gio::Cancellable::current().as_ref(),
@@ -348,7 +348,7 @@ fn system_repo() -> Result<Installation, FlatrunAgentError> {
     )?)
 }
 
-fn get_repo(repo: PathBuf, add_flathub: bool) -> Result<Installation, FlatrunAgentError> {
+fn get_repo(repo: PathBuf) -> Result<Installation, FlatrunAgentError> {
     let repo_file = libflatpak::gio::File::for_path(repo);
     // Create installation
     let installation = libflatpak::Installation::for_path(
@@ -356,33 +356,5 @@ fn get_repo(repo: PathBuf, add_flathub: bool) -> Result<Installation, FlatrunAge
         true,
         libflatpak::gio::Cancellable::current().as_ref(),
     )?;
-    if add_flathub {
-        // Add flathub
-        if let Err(e) = installation.add_remote(
-            &flathub_remote(),
-            false,
-            libflatpak::gio::Cancellable::current().as_ref(),
-        ) {
-            log::warn!("{}", e);
-            installation.modify_remote(
-                &flathub_remote(),
-                libflatpak::gio::Cancellable::current().as_ref(),
-            )?;
-        }
-    }
     Ok(installation)
-}
-
-pub fn flathub_remote() -> Remote {
-    let flathub = Remote::new("flathub");
-    flathub.set_url("https://dl.flathub.org/repo/");
-    flathub.set_homepage("https://flathub.org");
-    flathub.set_comment("Central repository of Flatpak applications");
-    flathub.set_description("Central repository of Flatpak applications");
-    flathub.set_icon("https://dl.flathub.org/repo/logo.svg");
-    // TODO: Get binary gpg key
-    flathub.set_gpg_key(&Bytes::from(&DATA));
-    flathub.set_gpg_verify(true);
-    flathub.set_collection_id(Some("org.flathub.Stable"));
-    flathub
 }
