@@ -789,6 +789,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "configparser"
+version = "3.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ec6d3da8e550377a85339063af6e3735f4b1d9392108da4e083a1b3b9820288"
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1167,13 +1173,13 @@ dependencies = [
 
 [[package]]
 name = "flatpak-unsandbox"
-version = "0.1.0"
-source = "git+https://github.com/ryanabx/flatpak-unsandbox?branch=changes/forward-dirs#67641ad477b4325a7775354de6a94789a06463d3"
+version = "0.2.0"
+source = "git+https://github.com/ryanabx/flatpak-unsandbox?branch=master#eb1b13832e50e6962063402b45e4cd4f97bce2a0"
 dependencies = [
- "gio",
- "glib",
+ "configparser",
  "log",
  "thiserror",
+ "zbus",
 ]
 
 [[package]]

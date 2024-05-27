@@ -11,7 +11,6 @@ use ashpd::{
     WindowIdentifier,
 };
 use clap::{arg, Parser, Subcommand};
-use flatpak_unsandbox::{Program, ProgramArg, UnsandboxError};
 use gui::AppState;
 use iced::{
     futures::{
@@ -215,6 +214,8 @@ pub async fn run_bundle(bundle_path: PathBuf, gui: bool) -> Result<(), FlatrunEr
     }
 }
 
+use flatpak_unsandbox::{CmdArg, FlatpakInfo, UnsandboxError};
+
 pub async fn run_bundle_inner(
     temp_repo: &Path,
     deps_repo: &Path,
@@ -222,79 +223,74 @@ pub async fn run_bundle_inner(
     sender: &mut Option<&mut Sender<gui::Message>>,
 ) -> Result<(), FlatrunError> {
     println!("Unsandboxing...");
-    if let Some(mut cmd) = flatpak_unsandbox::unsandbox(Some(Program::new(
-        "/app/libexec/flatrun-agent",
-        Some(vec![
-            ProgramArg::Value("install-run-bundle".into()), // command
-            ProgramArg::Path {
-                path: temp_repo.to_path_buf(),
-                in_sandbox: false, // '/tmp' is not in the sandbox
-            }, // repo
-            ProgramArg::Path {
-                path: deps_repo.to_path_buf(),
-                in_sandbox: true,
-            }, // dependency repo
-            ProgramArg::Path {
-                path: bundle_path.to_path_buf(),
-                in_sandbox: false,
-            }, // bundle
-        ]),
-        Some(vec![("RUST_LOG".into(), "DEBUG".into())]), // logging
-    )))? {
-        let mut child = cmd.stdout(Stdio::piped()).spawn().unwrap();
-        let stdout = child.stdout.take().unwrap();
-        // Stream output.
-        let lines = BufReader::new(stdout).lines();
-        for line in lines {
-            let l = match line {
-                Ok(a) => a,
-                Err(_) => break,
-            };
-            let update_metadata = l.split("::").map(|x| x.to_string()).collect::<Vec<_>>();
-            println!("GOT LINE: {:?}", update_metadata);
-            if update_metadata.len() != 5 {
-                if l.contains("RUNNING_APPLICATION") {
-                    if let Some(s) = sender {
-                        log::info!("Sending hide command!");
-                        if let Err(e) = s
-                            .send(gui::Message::Finished(Pid::from_child(&child)))
-                            .await
-                        {
-                            log::error!("{:?}", e);
-                            break;
-                        }
+
+    let info = FlatpakInfo::new()?;
+
+    let command = vec![
+        CmdArg::new_path("/app/libexec/flatrun-agent"),
+        CmdArg::new_string("install-run-bundle".into()),
+        CmdArg::new_path(temp_repo),
+        CmdArg::new_path(deps_repo),
+        CmdArg::new_path(bundle_path),
+    ];
+    let envs = vec![("RUST_LOG".to_string(), CmdArg::new_string("DEBUG".into()))];
+
+    let mut cmd = info.run_unsandboxed(command, Some(envs), None)?;
+    let mut child = cmd.stdout(Stdio::piped()).spawn().unwrap();
+    let stdout = child.stdout.take().unwrap();
+
+    // Stream output.
+    let lines = BufReader::new(stdout).lines();
+    for line in lines {
+        let l = match line {
+            Ok(a) => a,
+            Err(_) => break,
+        };
+        let update_metadata = l.split("::").map(|x| x.to_string()).collect::<Vec<_>>();
+        println!("GOT LINE: {:?}", update_metadata);
+        if update_metadata.len() != 5 {
+            if l.contains("RUNNING_APPLICATION") {
+                if let Some(s) = sender {
+                    log::info!("Sending hide command!");
+                    if let Err(e) = s
+                        .send(gui::Message::Finished(Pid::from_child(&child)))
+                        .await
+                    {
+                        log::error!("{:?}", e);
+                        break;
                     }
                 }
-                continue;
             }
-            let repo = update_metadata.get(0).unwrap().clone();
-            let action = update_metadata.get(1).unwrap().clone();
-            let app_ref = update_metadata.get(2).unwrap().clone();
-            let message = update_metadata.get(3).unwrap().clone();
-            let progress = update_metadata
-                .get(4)
-                .unwrap()
-                .clone()
-                .parse::<i32>()
-                .unwrap();
-            if let Some(s) = sender {
-                log::info!("Sending the info!");
-                if let Err(e) = s
-                    .send(gui::Message::Progress((
-                        repo,
-                        action,
-                        app_ref,
-                        message,
-                        progress as f32 / 100.0,
-                    )))
-                    .await
-                {
-                    log::error!("{:?}", e);
-                    break;
-                }
+            continue;
+        }
+        let repo = update_metadata.get(0).unwrap().clone();
+        let action = update_metadata.get(1).unwrap().clone();
+        let app_ref = update_metadata.get(2).unwrap().clone();
+        let message = update_metadata.get(3).unwrap().clone();
+        let progress = update_metadata
+            .get(4)
+            .unwrap()
+            .clone()
+            .parse::<i32>()
+            .unwrap();
+        if let Some(s) = sender {
+            log::info!("Sending the info!");
+            if let Err(e) = s
+                .send(gui::Message::Progress((
+                    repo,
+                    action,
+                    app_ref,
+                    message,
+                    progress as f32 / 100.0,
+                )))
+                .await
+            {
+                log::error!("{:?}", e);
+                break;
             }
         }
     }
+
     if let Some(s) = sender {
         log::info!("Sending hide command!");
         if let Err(e) = s.send(gui::Message::Close).await {
