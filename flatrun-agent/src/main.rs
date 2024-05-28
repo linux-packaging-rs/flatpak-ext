@@ -1,4 +1,4 @@
-use std::{fmt::Display, io, path::PathBuf};
+use std::{env, fmt::Display, io, path::PathBuf};
 
 use clap::{Parser, Subcommand};
 
@@ -56,6 +56,7 @@ enum AgentCommand {
 }
 
 fn main() -> Result<(), FlatrunAgentError> {
+    println!("Environment: {:?}", env::vars().collect::<Vec<_>>());
     let cli = Cli::parse();
     match cli.command {
         Some(AgentCommand::InstallRunBundle {

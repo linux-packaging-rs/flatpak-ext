@@ -254,7 +254,6 @@ pub async fn run_bundle_inner(
             Err(_) => break,
         };
         let update_metadata = l.split("::").map(|x| x.to_string()).collect::<Vec<_>>();
-        println!("GOT LINE: {:?}", update_metadata);
         if update_metadata.len() != 5 {
             if l.contains("RUNNING_APPLICATION") {
                 if let Some(s) = sender {
@@ -267,9 +266,12 @@ pub async fn run_bundle_inner(
                         break;
                     }
                 }
+            } else {
+                log::debug!("flatrun-agent: {}", l);
             }
             continue;
         }
+        println!("{:?}", update_metadata);
         let repo = update_metadata.get(0).unwrap().clone();
         let action = update_metadata.get(1).unwrap().clone();
         let app_ref = update_metadata.get(2).unwrap().clone();
