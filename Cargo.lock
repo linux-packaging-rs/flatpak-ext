@@ -1174,7 +1174,7 @@ dependencies = [
 [[package]]
 name = "flatpak-unsandbox"
 version = "0.2.0"
-source = "git+https://github.com/ryanabx/flatpak-unsandbox?branch=master#eb1b13832e50e6962063402b45e4cd4f97bce2a0"
+source = "git+https://github.com/ryanabx/flatpak-unsandbox?branch=master#9bc657ec435136b96d0da8f9fc4422746effaaa7"
 dependencies = [
  "configparser",
  "log",
@@ -2052,7 +2052,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c2a198fb6b0eada2a8df47933734e6d35d350665a33a3593d7164fa52c75c19"
 dependencies = [
  "cfg-if",
- "windows-targets 0.52.5",
+ "windows-targets 0.48.5",
 ]
 
 [[package]]

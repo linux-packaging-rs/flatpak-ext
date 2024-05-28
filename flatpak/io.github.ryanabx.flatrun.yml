@@ -57,7 +57,7 @@ modules:
       - cargo --offline fetch --manifest-path Cargo.toml --verbose
       - cargo --offline build --release --verbose
       # Cleanup BaseApp as we don't need it any more
-      - rm -rf /app/*
+      # - rm -rf /app/*
       # Install binary and data
       - install -Dm0755 target/release/flatrun /app/bin/flatrun
       - install -Dm0755 target/release/flatrun-agent /app/libexec/flatrun-agent

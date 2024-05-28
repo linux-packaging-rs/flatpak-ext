@@ -18,8 +18,11 @@ flatpak run io.github.ryanabx.flatrun bundle [PATH]
 
 **Flatpak is the only supported method of building Flatrun**. Install `flatpak-builder` and run:
 
+Build requirements: just and flatpak-builder installed through flatpak
+
 ```sh
-flatpak-builder --install --user [BUILD_DIR] flatpak/io.github.ryanabx.flatrun.yml
+flatpak install org.flatpak.Builder
+just build-flatpak
 ```
 
 ## Screenshots

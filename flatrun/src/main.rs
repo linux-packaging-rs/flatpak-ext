@@ -214,7 +214,7 @@ pub async fn run_bundle(bundle_path: PathBuf, gui: bool) -> Result<(), FlatrunEr
     }
 }
 
-use flatpak_unsandbox::{CmdArg, FlatpakInfo, UnsandboxError};
+use flatpak_unsandbox::{CmdArg, FlatpakInfo, UnsandboxError, UnsandboxOptions};
 
 pub async fn run_bundle_inner(
     temp_repo: &Path,
@@ -222,7 +222,7 @@ pub async fn run_bundle_inner(
     bundle_path: &Path,
     sender: &mut Option<&mut Sender<gui::Message>>,
 ) -> Result<(), FlatrunError> {
-    println!("Unsandboxing...");
+    log::info!("Unsandboxing...");
 
     let info = FlatpakInfo::new()?;
 
@@ -235,7 +235,14 @@ pub async fn run_bundle_inner(
     ];
     let envs = vec![("RUST_LOG".to_string(), CmdArg::new_string("DEBUG".into()))];
 
-    let mut cmd = info.run_unsandboxed(command, Some(envs), None)?;
+    let mut cmd = info.run_unsandboxed(
+        command,
+        Some(envs),
+        None,
+        UnsandboxOptions {
+            attempt_env_translation: true,
+        },
+    )?;
     let mut child = cmd.stdout(Stdio::piped()).spawn().unwrap();
     let stdout = child.stdout.take().unwrap();
 
