@@ -2,8 +2,8 @@
     {
         "type": "git",
         "url": "https://github.com/ryanabx/flatpak-unsandbox",
-        "commit": "67641ad477b4325a7775354de6a94789a06463d3",
-        "dest": "flatpak-cargo/git/flatpak-unsandbox-67641ad"
+        "commit": "eb1b13832e50e6962063402b45e4cd4f97bce2a0",
+        "dest": "flatpak-cargo/git/flatpak-unsandbox-eb1b138"
     },
     {
         "type": "archive",
@@ -1022,6 +1022,19 @@
     {
         "type": "archive",
         "archive-type": "tar-gzip",
+        "url": "https://static.crates.io/crates/configparser/configparser-3.0.4.crate",
+        "sha256": "4ec6d3da8e550377a85339063af6e3735f4b1d9392108da4e083a1b3b9820288",
+        "dest": "cargo/vendor/configparser-3.0.4"
+    },
+    {
+        "type": "inline",
+        "contents": "{\"package\": \"4ec6d3da8e550377a85339063af6e3735f4b1d9392108da4e083a1b3b9820288\", \"files\": {}}",
+        "dest": "cargo/vendor/configparser-3.0.4",
+        "dest-filename": ".cargo-checksum.json"
+    },
+    {
+        "type": "archive",
+        "archive-type": "tar-gzip",
         "url": "https://static.crates.io/crates/core-foundation/core-foundation-0.9.4.crate",
         "sha256": "91e195e091a93c46f7102ec7818a2aa394e1e1771c3ab4825963fa03e45afb8f",
         "dest": "cargo/vendor/core-foundation-0.9.4"
@@ -1555,12 +1568,12 @@
     {
         "type": "shell",
         "commands": [
-            "cp -r --reflink=auto \"flatpak-cargo/git/flatpak-unsandbox-67641ad/.\" \"cargo/vendor/flatpak-unsandbox\""
+            "cp -r --reflink=auto \"flatpak-cargo/git/flatpak-unsandbox-eb1b138/.\" \"cargo/vendor/flatpak-unsandbox\""
         ]
     },
     {
         "type": "inline",
-        "contents": "[package]\nname = \"flatpak-unsandbox\"\nversion = \"0.1.0\"\nedition = \"2021\"\nauthors = [ \"Ryan Brue <ryanbrue@gmail.com>\",]\nlicense = \"MIT\"\ncategories = [ \"os::linux-apis\",]\nkeywords = [ \"flatpak\", \"sandbox\",]\nrepository = \"https://github.com/ryanabx/flatpak-unsandbox\"\ndescription = \"Run your flatpak app outside of the sandbox.\"\nreadme = \"README.md\"\nhomepage = \"https://ryanabx.github.io/flatpak-unsandbox\"\n\n[dependencies]\ngio = \"^0.19\"\nglib = \"^0.19\"\nlog = \"0.4.21\"\nthiserror = \"^1\"\n",
+        "contents": "[package]\nname = \"flatpak-unsandbox\"\nversion = \"0.2.0\"\nedition = \"2021\"\nauthors = [ \"Ryan Brue <ryanbrue@gmail.com>\",]\nlicense = \"MIT\"\ncategories = [ \"os::linux-apis\",]\nkeywords = [ \"flatpak\", \"sandbox\",]\nrepository = \"https://github.com/ryanabx/flatpak-unsandbox\"\ndescription = \"Run your flatpak app outside of the sandbox.\"\nreadme = \"README.md\"\nhomepage = \"https://ryanabx.github.io/flatpak-unsandbox\"\n\n[dependencies]\nconfigparser = \"3.0.4\"\nlog = \"0.4.21\"\nthiserror = \"^1\"\n\n[dependencies.zbus]\nversion = \"4.2.2\"\nfeatures = [ \"blocking\",]\n",
         "dest": "cargo/vendor/flatpak-unsandbox",
         "dest-filename": "Cargo.toml"
     },
@@ -5732,7 +5745,7 @@
     },
     {
         "type": "inline",
-        "contents": "[source.vendored-sources]\ndirectory = \"cargo/vendor\"\n\n[source.crates-io]\nreplace-with = \"vendored-sources\"\n\n[source.\"https://github.com/ryanabx/flatpak-unsandbox\"]\ngit = \"https://github.com/ryanabx/flatpak-unsandbox\"\nreplace-with = \"vendored-sources\"\nbranch = \"changes/forward-dirs\"\n",
+        "contents": "[source.vendored-sources]\ndirectory = \"cargo/vendor\"\n\n[source.crates-io]\nreplace-with = \"vendored-sources\"\n\n[source.\"https://github.com/ryanabx/flatpak-unsandbox\"]\ngit = \"https://github.com/ryanabx/flatpak-unsandbox\"\nreplace-with = \"vendored-sources\"\nbranch = \"master\"\n",
         "dest": "cargo",
         "dest-filename": "config"
     }
