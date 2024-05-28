@@ -240,7 +240,8 @@ pub async fn run_bundle_inner(
         Some(envs),
         None,
         UnsandboxOptions {
-            attempt_env_translation: true,
+            attempt_env_translation: false,
+            clear_env: true,
         },
     )?;
     let mut child = cmd.stdout(Stdio::piped()).spawn().unwrap();
