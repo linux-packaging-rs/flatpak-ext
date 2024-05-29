@@ -244,6 +244,7 @@ pub async fn run_bundle_inner(
             clear_env: false,
         },
     )?;
+    log::info!("{:?} {:?}", cmd.get_program(), cmd.get_args());
     let mut child = cmd.stdout(Stdio::piped()).spawn()?;
     let stdout = child.stdout.take().unwrap();
 
