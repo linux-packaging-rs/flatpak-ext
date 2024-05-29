@@ -244,7 +244,7 @@ pub async fn run_bundle_inner(
             clear_env: false,
         },
     )?;
-    let mut child = cmd.stdout(Stdio::piped()).spawn().unwrap();
+    let mut child = cmd.stdout(Stdio::piped()).spawn()?;
     let stdout = child.stdout.take().unwrap();
 
     // Stream output.

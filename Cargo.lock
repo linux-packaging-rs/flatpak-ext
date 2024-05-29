@@ -1174,7 +1174,7 @@ dependencies = [
 [[package]]
 name = "flatpak-unsandbox"
 version = "0.2.0"
-source = "git+https://github.com/ryanabx/flatpak-unsandbox?branch=master#79c14bfc47905832a9eb5b40f565306ede2775e0"
+source = "git+https://github.com/ryanabx/flatpak-unsandbox?branch=master#4119ec8d5b65a72feab6dad55a4e7f20d641a941"
 dependencies = [
  "configparser",
  "log",
