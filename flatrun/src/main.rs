@@ -245,7 +245,7 @@ pub async fn run_bundle_inner(
         },
     )?;
     log::info!(
-        "'{}' '{}'",
+        "{} {}",
         cmd.get_program().to_string_lossy().to_string(),
         cmd.get_args()
             .map(|x| x.to_string_lossy().to_string())
