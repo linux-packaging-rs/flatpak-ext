@@ -244,7 +244,7 @@ pub async fn run_bundle_inner(
         envs,
         None,
         UnsandboxOptions {
-            translate_env: true,
+            translate_env: false,
             clear_env: false,
         },
     )?;
