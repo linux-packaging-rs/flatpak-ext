@@ -2,8 +2,8 @@
     {
         "type": "git",
         "url": "https://github.com/ryanabx/flatpak-unsandbox",
-        "commit": "4119ec8d5b65a72feab6dad55a4e7f20d641a941",
-        "dest": "flatpak-cargo/git/flatpak-unsandbox-4119ec8"
+        "commit": "c618037a914918c1007054c4878a685faf7db42b",
+        "dest": "flatpak-cargo/git/flatpak-unsandbox-c618037"
     },
     {
         "type": "archive",
@@ -1568,7 +1568,7 @@
     {
         "type": "shell",
         "commands": [
-            "cp -r --reflink=auto \"flatpak-cargo/git/flatpak-unsandbox-4119ec8/.\" \"cargo/vendor/flatpak-unsandbox\""
+            "cp -r --reflink=auto \"flatpak-cargo/git/flatpak-unsandbox-c618037/.\" \"cargo/vendor/flatpak-unsandbox\""
         ]
     },
     {

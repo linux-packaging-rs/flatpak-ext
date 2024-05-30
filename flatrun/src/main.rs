@@ -1,5 +1,6 @@
 mod gui;
 use std::{
+    collections::HashMap,
     env, fs,
     io::{self, BufRead, BufReader},
     path::{Path, PathBuf},
@@ -233,11 +234,14 @@ pub async fn run_bundle_inner(
         CmdArg::new_path(deps_repo),
         CmdArg::new_path(bundle_path),
     ];
-    let envs = vec![("RUST_LOG".to_string(), CmdArg::new_string("DEBUG".into()))];
+    let envs = HashMap::from_iter(vec![(
+        "RUST_LOG".to_string(),
+        CmdArg::new_string("DEBUG".into()),
+    )]);
 
     let mut cmd = info.run_unsandboxed(
         command,
-        Some(envs),
+        envs,
         None,
         UnsandboxOptions {
             translate_env: true,
