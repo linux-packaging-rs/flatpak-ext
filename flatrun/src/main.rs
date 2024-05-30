@@ -245,7 +245,7 @@ pub async fn run_bundle_inner(
         },
     )?;
     log::info!(
-        "{} {} {}",
+        "{}\n{} {}",
         cmd.get_envs()
             .map(|(e, v)| format!(
                 "export {}={}",
