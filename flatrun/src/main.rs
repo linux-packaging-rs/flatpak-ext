@@ -248,7 +248,7 @@ pub async fn run_bundle_inner(
         "{}\n{} {}",
         cmd.get_envs()
             .map(|(e, v)| format!(
-                "export {}={}",
+                "export {}=\"{}\"",
                 e.to_string_lossy().to_string(),
                 v.unwrap_or_default().to_string_lossy().to_string()
             ))
