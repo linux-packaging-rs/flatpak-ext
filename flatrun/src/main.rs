@@ -249,15 +249,7 @@ pub async fn run_bundle_inner(
         },
     )?;
     log::info!(
-        "{}\n{} {}",
-        cmd.get_envs()
-            .map(|(e, v)| format!(
-                "export {}=\"{}\"",
-                e.to_string_lossy().to_string(),
-                v.unwrap_or_default().to_string_lossy().to_string()
-            ))
-            .collect::<Vec<_>>()
-            .join("\n"),
+        "{} {}",
         cmd.get_program().to_string_lossy().to_string(),
         cmd.get_args()
             .map(|x| x.to_string_lossy().to_string())
