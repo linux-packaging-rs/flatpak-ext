@@ -60,7 +60,6 @@ modules:
       # - rm -rf /app/*
       # Install binary and data
       - install -Dm0755 target/release/flatrun /app/bin/flatrun
-      - install -Dm0755 target/release/flatrun-agent /app/libexec/flatrun-agent
       - install -Dm0644 data/flatrun.desktop /app/share/applications/io.github.ryanabx.flatrun.desktop
       - install -Dm0644 data/flatrun.metainfo.xml /app/share/metainfo/io.github.ryanabx.flatrun.metainfo.xml
       - install -Dm0644 data/flatrun.png /app/share/icons/hicolor/512x512/apps/io.github.ryanabx.flatrun.png
