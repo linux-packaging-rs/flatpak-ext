@@ -10,7 +10,7 @@ sdk-extensions:
 base: org.flatpak.Builder.BaseApp
 base-version: "23.08"
 separate-locales: false
-command: flatrun
+command: flatpak-host-launch flatrun
 finish-args:
   - "--share=ipc"
   - "--device=dri"
@@ -62,9 +62,9 @@ modules:
       - install -Dm0755 target/release/flatrun /app/bin/flatrun
       - install -Dm0755 target/release/flatrun-agent /app/libexec/flatrun-agent
       - install -Dm0644 data/flatrun.desktop /app/share/applications/io.github.ryanabx.flatrun.desktop
-      - install -Dm0644 data/flatrun-bundle.desktop /app/share/applications/io.github.ryanabx.flatrun-bundle.desktop
       - install -Dm0644 data/flatrun.metainfo.xml /app/share/metainfo/io.github.ryanabx.flatrun.metainfo.xml
       - install -Dm0644 data/flatrun.png /app/share/icons/hicolor/512x512/apps/io.github.ryanabx.flatrun.png
+      - install -Dm0755 tools/flatpak-host-launch.py /app/bin/flatpak-host-launch
     sources:
       - type: git
         url: https://github.com/ryanabx/flatrun.git

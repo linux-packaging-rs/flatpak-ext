@@ -1,16 +1,20 @@
 # Flatrun - Run Flatpaks without installing!
 
-Run the graphical user interface:
+Run a .flatpak bundle from a file:
 
 ```sh
-flatpak run io.github.ryanabx.flatrun --gui
+flatpak run io.github.ryanabx.flatrun -f [PATH]
 ```
 
-Or, run a .flatpak bundle straight from the terminal!:
+Run a flatpak straight from Flathub:
 
 ```sh
-flatpak run io.github.ryanabx.flatrun bundle [PATH]
+flatpak run io.github.ryanabx.flatrun -a [APPID]
 ```
+
+For example, inkscape?
+
+
 
 > **NOTE:** Please help test this and [Submit ISSUES](https://github.com/ryanabx/flatrun/issues/new) when you come across them!
 

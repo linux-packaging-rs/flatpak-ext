@@ -1,8 +1,10 @@
 [Desktop Entry]
 Name=Flatrun
-Exec=flatrun --gui %U
+Exec=flatpak-host-launch flatrun -f %U
 Type=Application
 Icon=io.github.ryanabx.flatrun
 Categories=Utility;
-NoDisplay=false
+NoDisplay=true
 GenericName=Application Launcher
+
+MimeType=application/vnd.flatpak;

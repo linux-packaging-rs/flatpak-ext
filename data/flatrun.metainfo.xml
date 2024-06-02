@@ -34,6 +34,12 @@
     </screenshots>
 
     <releases>
+        <release version="v0.2.0" date="2024-06-02">
+            <description>
+                <p>Rewrote most of the code as a lib.</p>
+                <p>Rewrote the bin to be just a command line tool again.</p>
+            </description>
+        </release>
         <release version="v0.1.3" date="2024-05-23">
             <description>
                 <p>Remove outdated code that added Flathub as a remote to the temporary repo</p>
