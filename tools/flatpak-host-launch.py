@@ -67,10 +67,10 @@ def check_permission() -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--pkexec", action="store_true", help="Run as root using pkexec")
-    parser.add_argument("--env", action='append', default=[], help="Set environment variable (can be used multiple times)")
-    parser.add_argument("--working-directory", default="~", help="Set working directory")
+    parser = argparse.ArgumentParser(add_help=False)
+    # parser.add_argument("--pkexec", action="store_true", help="Run as root using pkexec")
+    # parser.add_argument("--env", action='append', default=[], help="Set environment variable (can be used multiple times)")
+    # parser.add_argument("--working-directory", default="~", help="Set working directory")
     parser.add_argument("command", nargs="+", help="The command")
     args = parser.parse_args()
 
