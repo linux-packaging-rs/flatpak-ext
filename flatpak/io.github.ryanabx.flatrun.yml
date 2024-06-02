@@ -64,7 +64,7 @@ modules:
       - install -Dm0644 data/flatrun.metainfo.xml /app/share/metainfo/io.github.ryanabx.flatrun.metainfo.xml
       - install -Dm0644 data/flatrun.png /app/share/icons/hicolor/512x512/apps/io.github.ryanabx.flatrun.png
       - install -Dm0755 tools/flatpak-host-launch.py /app/bin/flatpak-host-launch
-      - echo "flatpak-host-launch flatrun $@" >> flatrun-host
+      - echo 'flatpak-host-launch flatrun "$@"' >> flatrun-host
       - install -Dm0755 flatrun-host /app/bin/flatrun-host
     sources:
       - type: git
