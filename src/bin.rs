@@ -33,17 +33,22 @@ struct Cli {
 }
 
 fn main() -> Result<(), FlatrunError> {
-    env_logger::init();
     let cli = Cli::parse();
-    log::trace!("Starting flatrun!");
+    if cli.verbose {
+        simple_logger::SimpleLogger::new()
+            .with_level(log::LevelFilter::Trace)
+            .init()
+            .unwrap();
+    }
+    log::info!("Starting flatrun!");
 
     if cli.clean {
         let _ = remove_dir_all(env::temp_dir().join("flatrun"));
-        log::info!("Cleared directory: {:?}", env::temp_dir().join("flatrun"));
+        log::trace!("Cleared directory: {:?}", env::temp_dir().join("flatrun"));
     }
     if cli.verbose {
         for e in env::vars().map(|(x, y)| format!("{}={}", x, y)) {
-            println!("{e}");
+            log::trace!("{e}");
         }
     }
 
