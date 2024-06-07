@@ -70,8 +70,6 @@ modules:
     buildsystem: simple
     build-commands:
       # Build using BaseApp libs and binaries
-      - pwd
-      - ls -a
       - cargo --offline fetch --manifest-path Cargo.toml --verbose
       - cargo --offline build --release --verbose
       # Cleanup BaseApp as we don't need it any more
@@ -82,9 +80,9 @@ modules:
       - install -Dm0644 data/flatrun.metainfo.xml /app/share/metainfo/io.github.ryanabx.flatrun.metainfo.xml
       - install -Dm0644 data/flatrun.png /app/share/icons/hicolor/512x512/apps/io.github.ryanabx.flatrun.png
       - echo '#!/bin/sh' >> flatrun-host
-      # - echo 'exec /app/libexec/flatpak-unsandbox -- /app/bin/flatrun "$@"' >> flatrun-host
-      - install -Dm0755 tools/flatpak-host-launch.py /app/bin/flatpak-host-launch
-      - echo 'exec /app/bin/flatpak-host-launch -- /app/bin/flatrun "$@"' >> flatrun-host
+      - echo 'exec /app/libexec/flatpak-unsandbox -- /app/bin/flatrun "$@"' >> flatrun-host
+      # - install -Dm0755 tools/flatpak-host-launch.py /app/bin/flatpak-host-launch
+      # - echo 'exec /app/bin/flatpak-host-launch -- /app/bin/flatrun "$@"' >> flatrun-host
       - install -Dm0755 flatrun-host /app/bin/flatrun-host
     sources:
       - type: git

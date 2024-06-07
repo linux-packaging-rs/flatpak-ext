@@ -4,8 +4,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use libflatrun::{Flatpak, FlatrunError, Message};
 use clap::Parser;
+use libflatrun::{Flatpak, FlatrunError, Message};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -36,6 +36,10 @@ fn main() -> Result<(), FlatrunError> {
     if cli.clean {
         let _ = remove_dir_all(env::temp_dir().join("flatrun"));
         log::info!("Cleared directory: {:?}", env::temp_dir().join("flatrun"));
+    }
+
+    for e in env::vars().map(|(x, y)| format!("{}={}", x, y)) {
+        log::trace!("{e}");
     }
 
     match cli.file {
