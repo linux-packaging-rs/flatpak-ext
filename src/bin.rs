@@ -27,6 +27,9 @@ struct Cli {
     /// Clean out the temp repo directory
     #[arg(short, long)]
     clean: bool,
+    /// Verbose
+    #[arg(long)]
+    verbose: bool,
 }
 
 fn main() -> Result<(), FlatrunError> {
@@ -38,9 +41,10 @@ fn main() -> Result<(), FlatrunError> {
         let _ = remove_dir_all(env::temp_dir().join("flatrun"));
         log::info!("Cleared directory: {:?}", env::temp_dir().join("flatrun"));
     }
-
-    for e in env::vars().map(|(x, y)| format!("{}={}", x, y)) {
-        log::trace!("{e}");
+    if cli.verbose {
+        for e in env::vars().map(|(x, y)| format!("{}={}", x, y)) {
+            println!("{e}");
+        }
     }
 
     match cli.file {
