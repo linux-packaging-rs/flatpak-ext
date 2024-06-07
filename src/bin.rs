@@ -35,7 +35,7 @@ struct Cli {
 fn main() -> Result<(), FlatrunError> {
     let cli = Cli::parse();
     if cli.verbose {
-        // simple_logger::init_with_level(log::Level::Trace).unwrap();
+        simple_logger::init_with_level(log::Level::Trace).unwrap();
     }
     log::info!("Starting flatrun!");
 
