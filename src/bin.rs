@@ -38,16 +38,13 @@ fn main() -> Result<(), FlatrunError> {
         simple_logger::init_with_level(log::Level::Trace).unwrap();
     }
     log::info!("Starting flatrun!");
-    println!("HEY");
 
     if cli.clean {
         let _ = remove_dir_all(env::temp_dir().join("flatrun"));
         log::trace!("Cleared directory: {:?}", env::temp_dir().join("flatrun"));
     }
-    if cli.verbose {
-        for e in env::vars().map(|(x, y)| format!("{}={}", x, y)) {
-            log::trace!("{e}");
-        }
+    for e in env::vars().map(|(x, y)| format!("{}={}", x, y)) {
+        log::trace!("{e}");
     }
 
     match cli.file {
