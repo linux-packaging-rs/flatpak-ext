@@ -113,6 +113,8 @@ def main() -> None:
     command.append(info_wrapper.to_host_path(executable))
     command += args.command[1:]
 
+    print(command)
+
     result = subprocess.run(command, cwd=os.path.expanduser(args.working_directory))
 
     sys.exit(result.returncode)

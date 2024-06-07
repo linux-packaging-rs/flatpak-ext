@@ -4,8 +4,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use clap::Parser;
 use libflatrun::{Flatpak, FlatrunError, Message};
+use clap::Parser;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
