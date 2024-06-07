@@ -32,6 +32,7 @@ struct Cli {
 fn main() -> Result<(), FlatrunError> {
     env_logger::init();
     let cli = Cli::parse();
+    log::trace!("Starting flatrun!");
 
     if cli.clean {
         let _ = remove_dir_all(env::temp_dir().join("flatrun"));
