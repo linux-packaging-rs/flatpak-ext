@@ -38,6 +38,7 @@ fn main() -> Result<(), FlatrunError> {
         simple_logger::init_with_level(log::Level::Trace).unwrap();
     }
     log::info!("Starting flatrun!");
+    println!("HEY");
 
     if cli.clean {
         let _ = remove_dir_all(env::temp_dir().join("flatrun"));
