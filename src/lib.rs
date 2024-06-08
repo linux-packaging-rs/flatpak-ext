@@ -263,16 +263,20 @@ pub fn run(
     remote.set_gpg_verify(false);
     log::debug!("GPG verify is set to false");
     remote.set_default_branch(&default_branch);
-    deps_repo.add_remote(
+    if let Err(e) = deps_repo.add_remote(
         &remote,
         true,
         libflatpak::gio::Cancellable::current().as_ref(),
-    )?;
-    install_repo.add_remote(
+    ) {
+        log::error!("There was a problem adding the remote: {}", e);
+    }
+    if let Err(e) = install_repo.add_remote(
         &remote,
         true,
         libflatpak::gio::Cancellable::current().as_ref(),
-    )?;
+    ) {
+        log::error!("There was a problem adding the remote: {}", e);
+    }
     log::debug!("Get the flatpak");
     let app = app.convert_to_flatpak_out(&install_repo, &remote, &default_branch, false)?;
     log::debug!("Get the runtime");
