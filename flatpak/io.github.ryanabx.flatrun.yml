@@ -51,20 +51,6 @@ modules:
           url: "https://api.github.com/repos/flatpak/flatpak/releases/latest"
           version-query: ".tag_name"
           url-query: "\"https://github.com/flatpak/flatpak/releases/download/\\($version)/flatpak-\\($version).tar.xz\""
-  - name: flatpak-unsandbox
-    buildsystem: simple
-    build-commands:
-      - cargo build --release
-      - install -Dm0755 target/release/flatpak-unsandbox /app/libexec/flatpak-unsandbox
-    sources:
-      - type: git
-        url: https://github.com/ryanabx/flatpak-unsandbox
-        branch: master
-        # tag: 
-        # commit: 
-      
-
-
 # Install flatrun
   - name: flatrun
     buildsystem: simple
@@ -73,15 +59,12 @@ modules:
       - cargo --offline fetch --manifest-path Cargo.toml --verbose
       - cargo --offline build --release --verbose
       # Cleanup BaseApp as we don't need it any more
-      # - rm -rf /app/*
+      - rm -rf /app/*
       # Install binary and data
       - install -Dm0755 target/release/flatrun /app/bin/flatrun
       - install -Dm0644 data/flatrun.desktop /app/share/applications/io.github.ryanabx.flatrun.desktop
       - install -Dm0644 data/flatrun.metainfo.xml /app/share/metainfo/io.github.ryanabx.flatrun.metainfo.xml
       - install -Dm0644 data/flatrun.png /app/share/icons/hicolor/512x512/apps/io.github.ryanabx.flatrun.png
-      - echo '#!/bin/sh' >> flatrun-host
-      - echo 'exec /app/libexec/flatpak-unsandbox --env GPGME_DEBUG=9 -- /app/bin/flatrun --verbose "$@"' >> flatrun-host
-      - install -Dm0755 flatrun-host /app/bin/flatrun-host
     sources:
       - type: git
         url: https://github.com/ryanabx/flatrun.git
@@ -89,5 +72,18 @@ modules:
         # tag: 
         # commit: 
       - generated-sources.json
-
+  - name: flatpak-unsandbox
+    buildsystem: simple
+    build-commands:
+      - cargo build --release
+      - install -Dm0755 target/release/flatpak-unsandbox /app/libexec/flatpak-unsandbox
+      - echo '#!/bin/sh' >> flatrun-host
+      - echo 'exec /app/libexec/flatpak-unsandbox -- /app/bin/flatrun --verbose "$@"' >> flatrun-host
+      - install -Dm0755 flatrun-host /app/bin/flatrun-host
+    sources:
+      - type: git
+        url: https://github.com/ryanabx/flatpak-unsandbox
+        branch: master
+        # tag: 
+        # commit: 
         
