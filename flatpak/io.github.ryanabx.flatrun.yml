@@ -25,8 +25,8 @@ build-options:
   append-path: "/usr/lib/sdk/rust-stable/bin"
   env:
     CARGO_HOME: "/run/build/flatrun/cargo"
-  build-args:
-  - "--share=network"
+  # build-args:
+  # - "--share=network"
 modules:
 # Install flatpak
   - name: flatpak
@@ -84,6 +84,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/ryanabx/flatpak-unsandbox
+        # branch: master
         tag: v0.2.0
         commit: 2176342245076a2499e4eac6d75e63522214c091
       - flatpak-unsandbox-sources.json
