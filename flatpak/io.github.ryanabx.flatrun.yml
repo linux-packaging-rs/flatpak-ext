@@ -71,11 +71,12 @@ modules:
         branch: master
         # tag: 
         # commit: 
-      - generated-sources.json
+      - flatrun-sources.json
   - name: flatpak-unsandbox
     buildsystem: simple
     build-commands:
-      - cargo build --release
+      - cargo --offline fetch --manifest-path Cargo.toml --verbose
+      - cargo --offline build --release --verbose
       - install -Dm0755 target/release/flatpak-unsandbox /app/libexec/flatpak-unsandbox
       - echo '#!/bin/sh' >> flatrun-host
       - echo 'exec /app/libexec/flatpak-unsandbox -- /app/bin/flatrun --verbose "$@"' >> flatrun-host
@@ -83,7 +84,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/ryanabx/flatpak-unsandbox
-        branch: master
-        # tag: 
-        # commit: 
+        tag: v0.2.0
+        commit: 2176342245076a2499e4eac6d75e63522214c091
+      - flatpak-unsandbox-sources.json
         
