@@ -260,8 +260,6 @@ pub fn run(
     let remote = remote_uri.map_or(Remote::default(), |x| Remote::new(x));
     let default_branch = remote.clone().default_branch;
     let remote = libflatpak::Remote::try_from(remote)?;
-    remote.set_gpg_verify(false);
-    log::debug!("GPG verify is set to false");
     remote.set_default_branch(&default_branch);
     if let Err(e) = deps_repo.add_remote(
         &remote,
