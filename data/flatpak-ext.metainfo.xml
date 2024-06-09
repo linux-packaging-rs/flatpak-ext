@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-    <id>io.github.ryanabx.flatrun</id>
+    <id>io.github.ryanabx.flatpak-ext</id>
     <name>Flatrun</name>
     <developer id="io.github.ryanabx">
         <name>Ryan Brue</name>
@@ -26,7 +26,7 @@
     </description>
     <developer_name>Ryan Brue</developer_name>
     <update_contact>ryanbrue@gmail.com</update_contact>
-    <url type="homepage">https://ryanabx.github.io/flatrun</url>
+    <url type="homepage">https://ryanabx.github.io/flatpak-ext</url>
     <launchable type="desktop-id">io.github.ryanabx.flatrun.desktop</launchable>
     <content_rating type="oars-1.1" />
     <releases>

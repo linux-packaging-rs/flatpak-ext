@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=Flatrun
-Exec=flatrun-host -f %U
+Name=Flatpak Ext Run Temp
+Exec=flatrun-host run-temp -f %U
 Type=Application
-Icon=io.github.ryanabx.flatrun
+Icon=io.github.ryanabx.flatpak-ext
 Categories=Utility;
 NoDisplay=true
 GenericName=Application Launcher

@@ -1,5 +1,5 @@
 [package]
-name = "flatrun"
+name = "flatpak-ext"
 version = "0.2.0"
 edition = "2021"
 authors = ["Ryan Brue <ryanbrue@gmail.com>"]
@@ -9,12 +9,12 @@ repository = "https://github.com/ryanabx/flatrun"
 license = "MIT"
 
 [lib]
-name = "libflatrun"
-path = "src/lib.rs"
+name = "flatpak_ext"
+path = "src/lib/lib.rs"
 
 [[bin]]
-name = "flatrun"
-path = "src/bin.rs"
+name = "flatpak-ext"
+path = "src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
