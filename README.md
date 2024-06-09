@@ -1,40 +1,20 @@
-# Flatrun - Run Flatpaks without installing!
+| | |
+| --- | --- |
+| <img src="flatpak-ext.svg" alt="drawing" width="64"/> | <h2>Flatpak-ext: Tools to extend flatpak </h2> |
 
-Run a .flatpak bundle from a file:
+Flatpak-ext is a binary that allows you to do extra things with flatpak, including:
 
-```sh
-flatpak run io.github.ryanabx.flatrun -f [PATH]
-```
+* Running flatpaks without installing them **[Implemented]**
+* More functionality coming soon!
 
-Run a flatpak straight from Flathub:
+## Examples
 
-```sh
-flatpak run io.github.ryanabx.flatrun -a [APPID]
-```
-
-For example, inkscape?
-
-
-
-> **NOTE:** Please help test this and [Submit ISSUES](https://github.com/ryanabx/flatrun/issues/new) when you come across them!
-
-## Building/Installing
-
-**Flatpak is the only supported method of building Flatrun**. Install `flatpak-builder` and run:
-
-Build requirements: just and flatpak-builder installed through flatpak
+Run Inkscape from flathub without installing it:
 
 ```sh
-flatpak install org.flatpak.Builder
-just build-flatpak
+flatpak-ext run-temp -a org.inkscape.Inkscape
 ```
-
-## Screenshots
-
-![Loading screen for Flatrun](res/screenshot1.png)
-
-![Running screen for Flatrun](res/screenshot2.png)
 
 ## Contributing
 
-This project is open to fixes and new features! It'd be helpful to make an issue describing what you plan to implement to avoid duplicate work!
+There are many ways we can extend and automate flatpak to make it work in new exciting ways. Contributions are absolutely welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for more information!

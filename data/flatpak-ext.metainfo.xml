@@ -9,20 +9,20 @@
     <project_license>MIT</project_license>
     <summary>Run flatpaks without installing!</summary>
     <description>
-        <h1 id="flatrun-run-flatpaks-without-installing-them-">Flatrun: Run flatpaks without
-            installing them!</h1>
-        <p>Flatrun is a command-line tool that lets you run a flatpak once, without it being
-            installed to your system or user installation.</p>
-        <h2 id="examples-">Examples:</h2>
-        <p>Run inkscape from flathub:</p>
-        <pre><code class="lang-shell">flatpak run io<span class="hljs-selector-class">.github</span><span class="hljs-selector-class">.ryanabx</span><span class="hljs-selector-class">.flatrun</span> -<span class="hljs-selector-tag">a</span> org<span class="hljs-selector-class">.inkscape</span><span class="hljs-selector-class">.Inkscape</span>
+        <h1>Flatpak-ext: Tools to extend flatpak </h1>
+        <p>Flatpak-ext is a binary that allows you to do extra things with flatpak, including:</p>
+        <ul>
+            <li>Running flatpaks without installing them <strong>[Implemented]</strong></li>
+            <li>More functionality coming soon!</li>
+        </ul>
+        <h2 id="examples">Examples</h2>
+        <p>Run Inkscape from flathub without installing it:</p>
+        <pre><code class="lang-sh">flatpak-ext run-temp -<span class="hljs-selector-tag">a</span> org<span class="hljs-selector-class">.inkscape</span><span class="hljs-selector-class">.Inkscape</span>
 </code></pre>
-        <p>Run a locally downloaded flatpak bundle:</p>
-        <pre><code class="lang-shell">flatpak run io<span class="hljs-selector-class">.github</span><span class="hljs-selector-class">.ryanabx</span><span class="hljs-selector-class">.flatrun</span> -f ~/Documents/waycheck.flatpak
-</code></pre>
-        <p>Get help for more commands:</p>
-        <pre><code class="lang-shell">flatpak run io<span class="hljs-selector-class">.github</span><span class="hljs-selector-class">.ryanabx</span><span class="hljs-selector-class">.flatrun</span> -h
-</code></pre>
+        <h2 id="contributing">Contributing</h2>
+        <p>There are many ways we can extend and automate flatpak to make it work in new exciting
+            ways. Contributions are absolutely welcome! See <a href="CONTRIBUTING.md">
+            CONTRIBUTING.md</a> for more information!</p>
     </description>
     <developer_name>Ryan Brue</developer_name>
     <update_contact>ryanbrue@gmail.com</update_contact>
