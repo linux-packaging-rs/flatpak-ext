@@ -1,8 +1,6 @@
-| | |
-| --- | --- |
-| <img src="flatpak-ext.svg" alt="drawing" width="64"/> | <h2>Flatpak-ext: Tools to extend flatpak </h2> |
-
 Flatpak-ext is a binary that allows you to do extra things with flatpak, including:
+
+> **NOTE (2024/09/16):** This project is currently being revived, which will take some time! I've learned a lot about rust since starting this project and I hope to clean it up a lot and add more features and better documentation.
 
 * Running flatpaks without installing them **[Implemented]**
 * More functionality coming soon!

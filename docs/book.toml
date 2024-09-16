@@ -1,0 +1,6 @@
+[book]
+authors = ["Ryan Brue"]
+language = "en"
+multilingual = false
+src = "src"
+title = "flatpak-ext: Extended tools for Flatpak!"

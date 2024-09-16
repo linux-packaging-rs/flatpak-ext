@@ -2,10 +2,10 @@
 name = "flatpak-ext"
 version = "0.2.0"
 edition = "2021"
-authors = ["Ryan Brue <ryanbrue@gmail.com>"]
+authors = ["Ryan Brue <ryanbrue.dev@gmail.com>"]
 readme = "README.md"
-homepage = "https://ryanabx.github.io/flatrun"
-repository = "https://github.com/ryanabx/flatrun"
+homepage = "https://linux-packaging-rs.github.io/flatpak-ext"
+repository = "https://github.com/linux-packaging-rs/flatpak-ext"
 license = "MIT"
 
 [lib]
