@@ -1,8 +1,10 @@
+use crate::types::FlatpakExtError;
 use clap::{Parser, Subcommand};
-use flatpak_ext::types::FlatpakExtError;
 use run_temp::run_no_install;
 
 pub mod run_temp;
+pub mod run_temp_tools;
+pub mod types;
 pub mod utils;
 
 #[derive(Parser)]

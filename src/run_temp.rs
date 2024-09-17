@@ -1,5 +1,5 @@
-use flatpak_ext::{
-    run_temp::{run, Message},
+use crate::{
+    run_temp_tools::{run, Message},
     types::{Flatpak, FlatpakExtError, Repo},
 };
 use std::{env, fs::remove_dir_all};
